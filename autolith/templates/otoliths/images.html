@@ -1,0 +1,59 @@
+{% extends "base.html" %}
+
+{% block title %}<h2>Section: Images</h2>{% endblock %} 
+
+<!-- Specific Page CSS goes HERE  -->
+{% block stylesheets %}{% endblock stylesheets %}
+
+
+{% block container %}
+<div style="display: inline-block; width:350px;">
+<span>Filter By Group: </span>
+<a href="?group=Northsea">Northsea</a>
+<span> ||| </span>
+<a href="?group=Baltic">Baltic</a>
+</div>
+
+<div style="display: inline-block; width:450px;">
+<span>Filter By Age: </span>
+<a href="?year=1">[1]</a>
+<span> | </span>
+<a href="?year=2">[2]</a>
+<span> | </span>
+<a href="?year=3">[3]</a>
+<span> | </span>
+<a href="?year=4">[4]</a>
+<span> | </span>
+<a href="?year=5">[5]</a>
+<span> | </span>
+<a href="?year=6">[6]</a>
+<span> | </span>
+<a href="?year=7">[7]</a>
+<span> | </span>
+<a href="?year=8">[8]</a>
+<span> | </span>
+<a href="?year=9">[9]</a>
+<span> | </span>
+<a href="?year=10">[10]</a>
+<span> | </span>
+<a href="?year=11">[11]</a>
+<span> | </span>
+<a href="?year=12">[12]</a>
+
+</div>
+
+<ul>
+{% for image in images %}
+    <li style="display: inline-block; margin: 5px;">
+	    <a href="/otoliths/detail/{{ image }}"><img style="width: 200px; height: 200px; margin: 5px;" src="/static/{{source_dir}}/{{ image }}"></a>
+    </li>
+
+{% endfor %}
+</ul>
+
+{% endblock container %}
+
+
+
+<!-- Specific Page JS goes HERE  -->
+{% block javascripts %}{% endblock javascripts %}

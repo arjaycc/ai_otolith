@@ -1,0 +1,54 @@
+{% extends "base.html" %}
+
+{% block title %} <h2>Section: AI Methods</h2> {% endblock %} 
+
+<!-- Specific Page CSS goes HERE  -->
+{% block stylesheets %}{% endblock stylesheets %}
+
+
+{% block container %}
+
+
+
+<div>
+<form action='/ai/' method='GET'>
+    <select name="aimethod"> Select AI method:
+        <option style="width: 50px;">Mask-RCNN</option>
+        <option style="width: 50px;">U-Net</option>
+        <option style="width: 50px;">CNN Regression</option>
+    </select>
+    <select name="weights"> Select Model Weights:
+        <option style="width: 50px;">mrcnn_1024_otolith_0500.h5</option>
+        <option style="width: 50px;">unet_512x2_newbal_end.h5</option>
+        <option style="width: 50px;">radial_regression_ep400.h5</option>
+    </select>
+    <button >LOAD WEIGHTS</button>
+    <button >LOAD NEW IMAGES</button>
+    <button >TRAIN</button>
+    <button type="submit">PREDICT</button>
+</form>
+
+</div>
+
+{% for image1, reading, prediction in images %}
+
+
+<div class="selected" style="display: inline-block; width: 400px; margin: 10px;">
+    <img style="width: 400px; height: 400px; margin: 0px;" src="/{{ image1 }}">
+</div>
+
+<span style="display: inline-block; width: 200px; margin: 20px;"> >>> DETECTION THRESHOLD: 0.80 >>> </span>
+
+<div class="selected" style="display: inline-block; width: 400px; margin: 10px;">
+    <img style="width: 400px; height: 400px; margin: 0px;" src="/{{ prediction }}">
+</div>
+{% endfor %}
+
+
+
+{% endblock container %}
+
+
+
+<!-- Specific Page JS goes HERE  -->
+{% block javascripts %}{% endblock javascripts %}

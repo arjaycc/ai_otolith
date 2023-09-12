@@ -1,0 +1,76 @@
+{% extends "base.html" %}
+
+{% block title %} <h2>Section: Upload Data</h2> {% endblock %} 
+
+<!-- Specific Page CSS goes HERE  -->
+{% block stylesheets %}{% endblock stylesheets %}
+
+
+{% block container %}
+
+
+<form role="form" method="post" action="">
+    
+  {% csrf_token %} 
+
+  <div class="row">
+    <div class="col-md-12">
+      <div class="form-group">
+        <label class="label">Image File</label>
+        {{ form.file }}
+      </div>
+    </div>
+  </div>
+  <span class="text-danger">{{ form.file.errors }}</span>
+
+  <br />
+
+  <div class="row">
+    <div class="col-md-12">
+      <div class="form-group">
+        <label class="label">Species</label>
+        {{ form.species }}
+      </div>
+    </div>
+  </div>
+  <span class="text-danger">{{ form.species.errors }}</span>
+
+  <br />
+
+  <div class="row">
+    <div class="col-md-12">
+      <div class="form-group">
+        <label class="label">Quarter</label>
+        {{ form.quarter }}
+      </div>
+    </div>
+  </div>
+  <span class="text-danger">{{ form.quarter.errors }}</span>
+
+  <br />
+
+  <div class="row">
+    <div class="col-md-12">
+      <div class="form-group">
+        <label class="label">Location</label>
+        {{ form.location }}
+      </div>
+    </div>
+  </div>
+  <span class="text-danger">{{ form.location.errors }}</span>
+
+  <br />
+
+  <button type="submit" name="register" class="btn pull-left">Upload</button>
+
+
+
+  <div class="clearfix"></div>
+
+</form>
+{% endblock container %}
+
+
+
+<!-- Specific Page JS goes HERE  -->
+{% block javascripts %}{% endblock javascripts %}
