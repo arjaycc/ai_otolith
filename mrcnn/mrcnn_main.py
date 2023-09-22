@@ -181,7 +181,7 @@ def train(name='mrcnn', data_params={}, edge_params={}, train_params={}, setting
                 whole_mask = None
             else:
                 whole_mask = utils.resize_mask(mask_new, scale, padding)
-                nuclues_mask = None
+                nucleus_mask = None
             cx, cy = get_center(whole_mask, nucleus_mask)
                 
             results = model.detect([original_image], verbose=1)
