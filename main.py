@@ -20,9 +20,9 @@ for fold in fold_list:
         'split_name': 'randsub',             # label of prepared folders (e.g. train_randsub_0, valid_randsub_0)
         'checkpoint': '_checkpoint',         # whether to use model saved during checkpoint or at the end (use empty '')
         #'target_species': 'saithe',         # filter test images by species
-        #'age_limit': 4,                     # whether to create age limit for training and testing  
+        #'age_limit': 7,                     # whether to create age limit for training and testing (7 for North, 4 for Baltic) 
         #'brighten': True,                   # whether to brighten the test images
-        #'source_dataset': 'datasets_north'
+        #'source_dataset': 'datasets_north'  # if the model is trained in one source dataset but to be tested in another set
     }
     
     # For the traditional algorithm involving signal processing (comment out the next line to skip)
@@ -33,7 +33,15 @@ for fold in fold_list:
     
     # For running U-Net algorithm (comment out the next line to skip)
     run_unet(settings) 
-
+    
+# IMPORTANT!
+# The 'selected' parameter id (e.g. the val 9 specified in example) used in this study are as follows:
+#          NORTH 
+# U-Net param_id selected == 47
+# M-RCNN param_id selected == 6
+#         BALTIC 
+# U-Net param_id selected == 37
+# M-RCNN param_id selected == 2
     
 # IMPORTANT!
 # the prediction results are inside the txt files generated inside run folders per algorithm 
