@@ -194,8 +194,8 @@ def train(name='mrcnn', data_params={}, edge_params={}, train_params={}, setting
             pred_lines.append("{},{},{}".format(fname, ai_reading, manual_age))
 
         if 'brighten' in settings:
-            output_file = "{}/{}/ztempbr_{}_{}_of_{}.txt".format(settings['dataset'], name, exact_reading, offbyone_reading, len(all_valid) )
+            output_file = "{}/{}/mrcnn_br_{}_{}_of_{}.txt".format(settings['dataset'], name, exact_reading, offbyone_reading, len(all_valid) )
         else:
-            output_file = "{}/{}/ztemprd_{}_{}_of_{}.txt".format(settings['dataset'], name, exact_reading, offbyone_reading, len(all_valid) )
+            output_file = "{}/{}/mrcnn_rd_{}_{}_of_{}.txt".format(settings['dataset'], name, exact_reading, offbyone_reading, len(all_valid) )
         with open(output_file, 'w') as fout:
             fout.write("\n".join(pred_lines))

@@ -379,8 +379,8 @@ def evaluate(name='unet', full_ring_type=False, data_params={}, settings={}):
             offbyone_reading += 1 
 
     if 'brighten' in settings:
-        output_file = "{}/{}/zntbn_{}_{}_of_{}.txt".format(domain, name, exact_reading, offbyone_reading, len(all_valid) )
+        output_file = "{}/{}/unet_br_{}_{}_of_{}.txt".format(domain, name, exact_reading, offbyone_reading, len(all_valid) )
     else:
-        output_file = "{}/{}/zntrd_{}_{}_of_{}.txt".format(domain, name, exact_reading, offbyone_reading, len(all_valid) )
+        output_file = "{}/{}/unet_rd_{}_{}_of_{}.txt".format(domain, name, exact_reading, offbyone_reading, len(all_valid) )
     with open(output_file, 'w') as fout:
         fout.write("\n".join(pred_lines))
