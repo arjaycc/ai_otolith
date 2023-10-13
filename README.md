@@ -6,8 +6,8 @@ To run the project, one can use either Command-Line or Web-based method (require
 The following are the summarized steps for running the algorithms (after successful git clone):
 
 1. First, the two datasets must be downloaded from the following repositories:
-- North Sea dataset: DOI 10.5281/zenodo.8341092
-- Baltic Sea dataset: DOI 10.5281/zenodo.8341149
+- North Sea dataset: DOI https://doi.org/10.5281/zenodo.8341092
+- Baltic Sea dataset: DOI https://doi.org/10.5281/zenodo.8341149
 
 2. Unzip the the downloaded image zip files into corresponding dataset folder (i.e. datasets_north/datasets_baltic)
 
@@ -24,7 +24,7 @@ The following are the summarized steps for running the algorithms (after success
 In case one does not want to train a new model but test existing models from the study, the following are the needed steps:
 
 1. A set of previously trained models can be downloaded from the following location:
-- models.zip:
+- models.zip: https://doi.org/10.5281/zenodo.10000645
 
 2. Unzip into the corresponding dataset folder (i.e. datasets_north/datasets_baltic)
 
