@@ -22,5 +22,11 @@ urlpatterns = [
     path('detail/<str:image_name>', views.data_detail),
     path('experiments/', views.experiments),
     path('experiments/run_unet/', views.experiments_unet),
+    
+    path('interact/', views.interact),
+    path('dataview/<str:dataset>/', views.dataview_sets),
+    path('dataview/<str:dataset>/<str:folder>/', views.dataview_images),
+    path('detail/<str:dataset>/<str:folder>/<str:image_name>', views.data_detail),
+    
     path('logout/', LogoutView.as_view(), name="logout")
 ]

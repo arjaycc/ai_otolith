@@ -46,7 +46,7 @@ import os
 from .experiments_imgproc import *
 from .experiments_mrcnn import *
 from .experiments_unet import *
-
+from .views_utils import *
 
 def index(request):
     return render(request, 'otoliths/index.html')
@@ -273,5 +273,86 @@ def experiments_unet(request):
     }
     run_unet(settings)
     return render(request, 'otoliths/experiments.html')
+
+
+@csrf_exempt
+def interact(request):
+    request = json.loads(request.body.decode('utf-8'))
+    print(request['_via_image_id_list'])
+    img_name = '{}.png'.format(request['_via_image_id_list'][0].split('.png')[0])
+    with open("autolith/static/new_annotations/{}.json".format(img_name), "w") as fout:
+        json.dump(request, fout, indent=4)
+        
+    return HttpResponse("success")
+
+def dataview_sets(request, dataset):
+    img_files = glob.glob('autolith/static/data/{}/*/*.png'.format(dataset))
+    img_files.extend(glob.glob('autolith/static/data/{}/*/*.jpg'.format(dataset)))
+    print(img_files)
+    all_folders = []
+    for img_file in img_files:
+        strs = img_file.replace("\\", "/").split("/")
+        all_folders.append(strs[-2])
+    all_folders = list(set(all_folders))
+    return render(request, 'otoliths/dataview_sets.html', {'folders': all_folders})
+
+def dataview_images(request, dataset, folder):
+    img_files = glob.glob('autolith/static/data/{}/{}/*.png'.format(dataset, folder) )
+    img_files.extend(glob.glob('autolith/static/data/{}/{}/*.jpg'.format(dataset, folder)))
+    print(img_files)
+    all_images = []
+    count = 0
+    for img_file in img_files:
+        strs = img_file.replace("\\", "/").split("/")
+        all_images.append(strs[-1])
+        count += 1
+        if count > 25:
+            break
+    return render(request, 'otoliths/dataview_images.html', {'dataset': dataset, 'folder': folder, 'images': all_images})
+
+@csrf_exempt
+def data_detail(request, dataset, folder, image_name):
+    import skimage.io
+    from mrcnn.utils import resize_image
+
+    og_img = skimage.io.imread('autolith/static/data/{}/{}/{}'.format(dataset, folder, image_name))
+    sq_img, window, scale, padding, _ = resize_image(
+    og_img, 
+    min_dim=512,
+    max_dim=512,
+    #padding=True,
+    )
+
+    print(request.POST)
+    print(request.GET)
+    if 'process' in request.GET:
+        if request.GET['process'] == 'SelectRegions':
+            predict_mrcnn(og_img, sq_img, window, dataset, folder, image_name)
+            result_name ="mrcnn_image_{}.png".format(image_name)
+        elif request.GET['process'] == 'CoreDetection':
+            predict_mrcnn(og_img, sq_img, window, dataset, folder, image_name, mode="core")
+            result_name ="mrcnn_image_{}.png".format(image_name) 
+        elif request.GET['process'] == 'Combined':
+            predict_mrcnn_combined(og_img, sq_img, window, dataset, folder, image_name, mode="combined")
+            result_name ="mrcnn_image_{}.png".format(image_name) 
+        elif request.GET['process'] == 'LogAdjustment':
+            return load_data_marks(request, og_img, sq_img, window, dataset, folder, image_name)
+        elif request.GET['process'] == 'Blank':
+            return load_blank_marks(request, og_img, sq_img, window, dataset, folder, image_name)
+        elif request.GET['process'] == 'Segment':
+            if 'convert' in request.GET:
+                return convert_data_marks(request, og_img, sq_img, window, dataset, folder, image_name, markings='poly')
+            elif 'mode' in request.GET and request.GET['mode'] == 'brush':
+                return load_data_marks(request, og_img, sq_img, window, dataset, folder, image_name, markings='poly', mode='brush')
+            else:
+                return load_data_marks(request, og_img, sq_img, window, dataset, folder, image_name, markings='poly')
+        else:
+            predict_unet(og_img, sq_img, window, dataset, folder, image_name)
+            result_name ='unetcontour_{}'.format(image_name) 
+        image_name = result_name
+    else:
+        skimage.io.imsave("autolith/static/detail/{}".format(image_name), sq_img)
+
+    return render(request, 'otoliths/image_detail.html', {'dataset': dataset, 'folder': folder, 'image_name': image_name})
 
 

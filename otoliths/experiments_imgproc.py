@@ -1,10 +1,10 @@
 from django.shortcuts import render
 import os
 import json
-import imgproc.imgproc_main as imgproc_setup
 
 
 def start_run_imgproc(settings):
+    import imgproc.imgproc_main as imgproc_setup
     print(settings) 
     idr = settings['idr']
     run_label = "{}".format(settings['run_label'])

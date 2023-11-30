@@ -1,0 +1,47 @@
+{% extends "base.html" %}
+
+{% block title %} <h2>Section: View Data</h2> {% endblock %} 
+
+<!-- Specific Page CSS goes HERE  -->
+{% block stylesheets %}{% endblock stylesheets %}
+
+
+{% block container %}
+
+
+<div>
+<form action='/otoliths/detail/{{ dataset }}/{{ folder }}/{{ image }}' method='GET'>
+    <select name="aimethod"> Select AI method:
+        <option style="width: 50px;">Mask-RCNN</option>
+        <option style="width: 50px;">U-Net</option>
+        <option style="width: 50px;">CNN Regression</option>
+    </select>
+    <select name="weights"> Select Model Weights:
+        <option style="width: 50px;">mrcnn_1024_otolith_0500.h5</option>
+        <option style="width: 50px;">unet_512x2_newbal_end.h5</option>
+        <option style="width: 50px;">radial_regression_ep400.h5</option>
+    </select>
+    <button >LOAD WEIGHTS</button>
+    <button >LOAD NEW IMAGES</button>
+    <button >TRAIN</button>
+    <button type="submit">PREDICT</button>
+</form>
+
+</div>
+
+
+<ul>
+{% for image in images %}
+    <li style="display: inline-block; margin: 5px;">
+        <a href="/otoliths/detail/{{ dataset }}/{{ folder }}/{{ image }}"><img style="width: 200px; height: 200px; margin: 5px;" src="/static/data/{{ dataset }}/{{ folder }}/{{ image }}"></a>
+    </li>
+
+{% endfor %}
+</ul>
+
+{% endblock container %}
+
+
+
+<!-- Specific Page JS goes HERE  -->
+{% block javascripts %}{% endblock javascripts %}

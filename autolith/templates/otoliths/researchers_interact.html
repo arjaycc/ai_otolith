@@ -1,6 +1,57 @@
-{% extends "base.html" %}
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8">
+    <!--
+        VGG Image Annotator (via)
+        www.robots.ox.ac.uk/~vgg/software/via/
 
-{% block stylesheets %}
+        Copyright (c) 2016-2018, Abhishek Dutta, Visual Geometry Group, Oxford University and VIA Contributors..
+        All rights reserved.
+
+        Redistribution and use in source and binary forms, with or without
+        modification, are permitted provided that the following conditions are met:
+
+        Redistributions of source code must retain the above copyright notice, this
+        list of conditions and the following disclaimer.
+        Redistributions in binary form must reproduce the above copyright notice,
+        this list of conditions and the following disclaimer in the documentation
+        and/or other materials provided with the distribution.
+        THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+        AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+        IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+        ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
+        LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+        CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+        SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+        INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+        CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+        ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+        POSSIBILITY OF SUCH DAMAGE.
+      -->
+    <title>VGG Image Annotator</title>
+    <meta name="author" content="Abhishek Dutta">
+    <meta name="description" content="VIA is a standalone image annotator application packaged as a single HTML file (< 400 KB) that runs on most modern web browsers.">
+
+    <!--
+    Development of VIA is supported by the EPSRC programme grant
+    Seebibyte: Visual Search for the Era of Big Data (EP/M013774/1).
+    Using Google Analytics, we record the usage of this application.
+    This data is used in reporting of this programme grant.
+
+    If you do not wish to share this data, you can safely remove the
+    javascript code below.
+    -->
+    <script type="text/javascript">
+      (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+        (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+                               m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+                              })(window,document,'script','https://www.google-analytics.com/analytics.js','ga');
+      ga('create', 'UA-20555581-2', 'auto');
+      ga('set', 'page', 'via-2.0.0.html');
+      ga('send', 'pageview');
+    </script>
+    <script type="text/javascript" src="http://cdnjs.cloudflare.com/ajax/libs/paper.js/0.10.2/paper-full.min.js"></script>
 <!-- START: Contents of file: via.css-->
 <style>
 /* 
@@ -221,9 +272,13 @@ ul.region_shape .selected { fill:#ffffff; stroke:#ff0000; }
 
 .force_small_font { font-size:small !important; }
 .key { font-family:monospace; padding:1px 6px; background:linear-gradient(to bottom,#f0f0f0,#fcfcfc);; border:1px solid #e0e0e0; white-space:nowrap; color:#303030; border-bottom-width:2px; border-radius:3px; font-size:1.2em; }
+
+
+
 </style>
-{% endblock stylesheets %}
-{% block main_body %}
+<!-- END: Contents of file: via.css-->
+  </head>
+
   <body onload="_via_init('{{ pass_var }}')" onresize="_via_update_ui_components()">
     <!--
         SVG icon set definitions
@@ -372,9 +427,7 @@ ul.region_shape .selected { fill:#ffffff; stroke:#ff0000; }
       <!-- menu bar -->
       <div class="menubar">
         <ul>
-          <li onclick="javascript:window.close('','_parent','');" style="cursor:pointer;">Home</li>
-          <li style="cursor:pointer;"><a href="{{ fname}}?process=Segment&mode={{ mode }}">{{ mode|capfirst }}</a></li>
-          <li style="cursor:pointer;"><a href="{{ fname}}?process=Segment&mode={{ mode }}&convert=1">Convert</a></li>
+          <li onclick="show_home_panel()" style="cursor:pointer;">Home</li>
           <li>Project
             <ul>
               <li onclick="project_open_select_project_file()" title="Load a VIA project (from a JSON file)">Load</li>
@@ -460,10 +513,7 @@ ul.region_shape .selected { fill:#ffffff; stroke:#ff0000; }
         <svg onclick="zoom_out()" viewbox="0 0 24 24"><use xlink:href="#icon_zoomout"></use><title>Zoom Out</title></svg>
 
         <svg onclick="sel_all_regions()" viewbox="0 0 24 24" style="margin-left:1rem;"><use xlink:href="#icon_selectall"></use><title>Select All Regions</title></svg>
-        <svg onclick="copy_sel_regions()" viewbox="0 0 24 24"><use xlink:href="#icon_copy"></use><title>Copy Regions</title></svg>
-        <svg onclick="paste_sel_regions_in_current_image()" viewbox="0 0 24 24"><use xlink:href="#icon_paste"></use><title>Paste Regions</title></svg>
-        <svg onclick="paste_to_multiple_images_with_confirm()" viewbox="0 0 24 24"><use xlink:href="#icon_pasten"></use><title>Paste Region in Multiple Images</title></svg>
-        <svg onclick="del_sel_regions_with_confirm()" viewbox="0 0 24 24"><use xlink:href="#icon_pasteundo"></use><title>Undo Regions Pasted in Multiple Images</title></svg>
+
         <svg onclick="del_sel_regions()" viewbox="0 0 24 24"><use xlink:href="#icon_close"></use><title>Delete Region</title></svg>
       </div>
       <!-- end of shortcut toolbar -->
@@ -654,7 +704,7 @@ ul.region_shape .selected { fill:#ffffff; stroke:#ff0000; }
           <!-- buffer images using <img> element will be added here -->
 
           <!-- @todo: in future versions, this canvas will be replaced by a <svg> element -->
-            <canvas id="region_canvas" width="1" height="1" tabindex="1">Sorry, your browser does not support HTML5 Canvas functionality which is required for this application.</canvas>
+            <canvas id="region_canvas" width="1" height="1" tabindex="1" resize>Sorry, your browser does not support HTML5 Canvas functionality which is required for this application.</canvas>
             <!-- here, a child div with id="annotation_editor" is added by javascript -->
         </div>
         <div id="image_grid_panel" class="display_area_content display_none">
@@ -713,7 +763,7 @@ ul.region_shape .selected { fill:#ffffff; stroke:#ff0000; }
             </div>
 
             <div class="value">
-              <input type="text" id="_via_settings.core.default_filepath" placeholder="/static/"/>
+              <input type="text" id="_via_settings.core.default_filepath" placeholder="/datasets/pascal/voc2012/VOCdevkit/VOC2012/JPEGImages/"/>
             </div>
           </div>
 
@@ -724,7 +774,7 @@ ul.region_shape .selected { fill:#ffffff; stroke:#ff0000; }
             </div>
 
             <div class="value">
-              <input type="text" id="settings_input_new_filepath" placeholder="/static/"/>
+              <input type="text" id="settings_input_new_filepath" placeholder="/datasets/pascal/voc2012/VOCdevkit/VOC2012/JPEGImages"/>
             </div>
           </div>
 
@@ -1266,6 +1316,10 @@ var VIA_COCO_EXPORT_ATTRIBUTE_TYPE = [VIA_ATTRIBUTE_TYPE.DROPDOWN,
 //
 // Data structure to store metadata about file and regions
 //
+
+var brushShape;
+var brushRadius = 4;
+
 function file_metadata(filename, size) {
   this.filename = filename;
   this.size     = size;         // file size in bytes
@@ -1302,7 +1356,7 @@ function _via_init(pass_var) {
   // initialize user input handlers (for both window and via_reg_canvas)
   // handles drawing of regions by user over the image
   _via_init_keyboard_handlers();
-  _via_init_mouse_handlers();
+  //_via_init_mouse_handlers();
 
   // initialize image grid
   image_grid_init();
@@ -1322,6 +1376,227 @@ function _via_init(pass_var) {
     }, 100);
   }
   project_open(pass_var);
+
+ paper.setup('region_canvas');
+  // paper.view.setCenter(0,0);
+  var svg = document.getElementById('image_grid_content_rshape');
+  
+  // var brushRadius = 4;
+  var followMouseCircle = new paper.Path.Circle(new paper.Point(0,0), brushRadius);
+  followMouseCircle.strokeColor = 'black';
+  followMouseCircle.visible = false;
+  followMouseCircle.dashArray = [3,3];
+
+  followMouseCircle.onDoubleClick = function(event){
+    // console.log("db click");
+
+  }
+
+  
+  paper.view.onMouseEnter = function(event) {
+    // console.log("mouseEnter");
+    followMouseCircle.visible = true;
+    // brushShape = false;
+  };
+  paper.view.onMouseMove = function(event) {
+    // console.log("onMouseMove");
+    followMouseCircle.position = event.point;
+  };
+  paper.view.onMouseLeave = function() {
+    // console.log("onMouseLeave");
+    followMouseCircle.visible = false;
+    // brushShape = false;
+  };
+  paper.view.onClick = function(event) {
+    // console.log("click")
+    // var circle = new paper.Path.Circle(event.point, brushRadius);
+    // if (brushShape) {
+    //   // combine this click shape (circle) with cumulative, previous shapes (brushShape)
+    //   var brushShape_clone = brushShape.clone(); // clone is required to remove previous shapes from <canvas>
+    //   brushShape.remove(); // remove previous brushShape from <canvas>
+    //   brushShape = circle.unite(brushShape_clone);
+    //   circle.remove(); // remove circle from <canvas>
+    //   brushShape_clone.remove(); // remove clone from <canvas>
+    // } else {
+    //   brushShape = circle;
+    // }
+    // brushShape.fillColor   = '#777777';
+
+  //   var img_id = _via_image_id;
+  //   // console.log(_via_img_metadata[img_id]) ;
+
+
+
+
+
+  //   // var num_regions = _via_img_metadata[img_id].regions.length;
+  //   // var polygon_region = JSON.parse(JSON.stringify(_via_canvas_regions[8]));
+
+  // var polygon_region = new file_region();
+  // polygon_region.shape_attributes['name'] = VIA_REGION_SHAPE.POLYLINE;
+  // // console.log(VIA_REGION_SHAPE.POLYLINE)
+
+  // // var canvas_all_points_x = [];
+  // // var canvas_all_points_y = [];
+  // // var all_points_x = _via_canvas_regions[8].shape_attributes['all_points_x'];
+  // // var all_points_y = _via_canvas_regions[8].shape_attributes['all_points_y'];
+  // // var n = all_points_x.length;
+  // // var i;
+  // // for ( i = 0; i < n; ++i ) {
+
+  // //   canvas_all_points_x.push(Math.round( all_points_x[i] + 3 ) );
+  // //   canvas_all_points_y.push(Math.round( all_points_y[i] - 3 ) );
+  // // }
+
+
+  // polygon_region.shape_attributes['all_points_x'] = [110,115,120,125,130,135,140];
+  // polygon_region.shape_attributes['all_points_y'] = [140,145,150,155,160,165,170];
+  // _via_img_metadata[img_id].regions.push( polygon_region);
+  // _via_canvas_regions.push(polygon_region);
+
+
+
+
+
+    // console.log(brushShape)
+    brushShape.removeChildren(0);
+
+  };
+  paper.view.onMouseDown = function(event) {
+    // console.log("dowwwwwwwwwwwwwnnnnnnn")
+    // console.log(_via_current_shape)
+
+
+    if (_via_current_shape == VIA_REGION_SHAPE.CIRCLE){
+      brushShape.remove();
+      // brushShape = false;
+    } else {
+      var circle = new paper.Path.Circle(event.point, brushRadius);
+      if (brushShape) {
+        // combine this click shape (circle) with cumulative, previous shapes (brushShape)
+        var brushShape_clone = brushShape.clone(); // clone is required to remove previous shapes from <canvas>
+        brushShape.remove(); // remove previous brushShape from <canvas>
+        brushShape = circle.unite(brushShape_clone);
+        circle.remove(); // remove circle from <canvas>
+        brushShape_clone.remove(); // remove clone from <canvas>
+      } else {
+        brushShape = circle;
+      }
+      brushShape.fillColor   = '#777777';
+    }
+
+  };
+  paper.view.onMouseDrag = function(event) {
+    // console.log("draaaaaaaag")
+    // make drag shape (roundedRectangle)
+    var roundedRectangle = new paper.Path.Rectangle({
+      point:  [event.point.x-event.delta.length-brushRadius,event.point.y-brushRadius],
+      size:   [event.delta.length+2*brushRadius, 2*brushRadius],
+      radius: brushRadius
+    });
+    roundedRectangle.rotate(event.delta.angle, event.point);
+    // var circle = new paper.Path.Circle(event.point, brushRadius);
+    // var brushShape = circle; 
+
+
+    var circle = new paper.Path.Circle(event.point, brushRadius);
+    if (brushShape) {
+      // combine this click shape (circle) with cumulative, previous shapes (brushShape)
+      var brushShape_clone = brushShape.clone(); // clone is required to remove previous shapes from <canvas>
+      brushShape.remove(); // remove previous brushShape from <canvas>
+      brushShape = circle.unite(brushShape_clone);
+      circle.remove(); // remove circle from <canvas>
+      brushShape_clone.remove(); // remove clone from <canvas>
+    } else {
+      brushShape = circle;
+    }
+
+    // combine this drag shape (roundedRectangle) with cumulative, previous drag shapes (brushShape)
+    var brushShape_clone = brushShape.clone(); // clone is required to remove previous shapes from <canvas>
+    brushShape.remove(); // remove previous brushShape from <canvas>
+    brushShape = roundedRectangle.unite(brushShape_clone);
+    roundedRectangle.remove(); // remove roundedRectangle from <canvas>
+    brushShape_clone.remove(); // remove clone from <canvas>
+    brushShape.fillColor = '#777777';
+
+    // brush circle
+    followMouseCircle.position = event.point;
+    followMouseCircle.bringToFront();
+    // console.log(brushShape)
+
+  //   var img_id = _via_image_id;
+  //   // console.log(_via_img_metadata[img_id]) ;
+
+
+  //   // var num_regions = _via_img_metadata[img_id].regions.length;
+  //   // var polygon_region = JSON.parse(JSON.stringify(_via_canvas_regions[8]));
+
+  // var polygon_region = new file_region();
+  // polygon_region.shape_attributes['name'] = VIA_REGION_SHAPE.POLYLINE;
+  // // console.log(VIA_REGION_SHAPE.POLYLINE)
+
+  // // var canvas_all_points_x = [];
+  // // var canvas_all_points_y = [];
+  // // var all_points_x = _via_canvas_regions[8].shape_attributes['all_points_x'];
+  // // var all_points_y = _via_canvas_regions[8].shape_attributes['all_points_y'];
+  // // var n = all_points_x.length;
+  // // var i;
+  // // for ( i = 0; i < n; ++i ) {
+
+  // //   canvas_all_points_x.push(Math.round( all_points_x[i] + 3 ) );
+  // //   canvas_all_points_y.push(Math.round( all_points_y[i] - 3 ) );
+  // // }
+
+  // polygon_region.shape_attributes['all_points_x'] = [110,115,120,125];
+  // polygon_region.shape_attributes['all_points_y'] = [140,145,150,155];
+  // _via_img_metadata[img_id].regions.push( polygon_region);
+  // _via_canvas_regions.push(polygon_region);
+
+  //   _via_redraw_reg_canvas();
+
+    // svg
+    // svg.innerHTML = brushShape.exportSVG({asString:true});
+
+    brushShape.selected = true;
+
+    // if (_via_current_shape == VIA_REGION_SHAPE.CIRCLE){
+    //   brushShape.remove();
+    // }
+
+
+    // var test_json = brushShape.exportJSON({asString:true});
+    // var test_json = brushShape.exportJSON({asString:false});
+    // console.log(test_json[1].children)
+    // console.log(test_json[1].children[0][1].segments.length)
+
+
+    // if (_via_current_shape == VIA_REGION_SHAPE.CIRCLE){
+    //   brushShape.remove();
+    //   // brushShape = false;
+    // }
+
+
+  };
+  paper.view.onMouseUp = function() {
+    // console.log("mouse up")
+    brushShape.selected = true;
+    
+    // var simplify = false;
+    // if (simplify) {
+    //   brushShape.simplify(0);
+    // }
+
+    // svg
+    // svg.innerHTML = brushShape.exportSVG({asString:true});
+  };
+
+  paper.view.onDoubleClick = function() {
+    // console.log("double")
+    // svg
+    // svg.innerHTML = brushShape.exportSVG({asString:true});
+  };
+
+
 }
 
 function _via_init_reg_canvas_context() {
@@ -1354,6 +1629,29 @@ function _via_init_mouse_handlers() {
 //
 
 function download_as_image() {
+  // alert("success");
+
+  var _via_project = { '_via_settings': _via_settings,
+                       '_via_img_metadata': _via_img_metadata,
+                       '_via_attributes': _via_attributes,
+                       '_via_data_format_version': '2.0.10',
+                       '_via_image_id_list': _via_image_id_list
+                     };
+
+  // console.log(JSON.stringify(_via_project));
+
+  var xhttp = new XMLHttpRequest();
+  xhttp.open("POST", "/interact/", true);
+  xhttp.setRequestHeader('Content-Type', 'application/json');
+  // xhttp.send(JSON.stringify(
+  //     {test: 1}
+  //   ));
+  xhttp.send(JSON.stringify(_via_project));
+  xhttp.onload = function () {
+    console.log("success");
+    alert("success");
+  }
+  
   // if ( _via_display_area_content_name !== VIA_DISPLAY_AREA_CONTENT_NAME['IMAGE'] ) {
   //   show_message('This functionality is only available in single image view mode');
   //   return;
@@ -1396,29 +1694,6 @@ function download_as_image() {
 
   //   a.dispatchEvent(event);
   // }
-
-
-  var _via_project = { '_via_settings': _via_settings,
-                       '_via_img_metadata': _via_img_metadata,
-                       '_via_attributes': _via_attributes,
-                       '_via_data_format_version': '2.0.10',
-                       '_via_image_id_list': _via_image_id_list
-                     };
-
-  // console.log(JSON.stringify(_via_project));
-
-  var xhttp = new XMLHttpRequest();
-  xhttp.open("POST", "/interact/", true);
-  xhttp.setRequestHeader('Content-Type', 'application/json');
-  // xhttp.send(JSON.stringify(
-  //     {test: 1}
-  //   ));
-  xhttp.send(JSON.stringify(_via_project));
-  xhttp.onload = function () {
-    console.log("success");
-    alert("success");
-  }
-
 }
 
 //
@@ -4811,7 +5086,7 @@ function _via_handle_global_keydown_event(e) {
     }
 
     if ( e.key === "=") {
-      reset_zoom_level();
+      zoom_in();
       return;
     }
 
@@ -4819,6 +5094,12 @@ function _via_handle_global_keydown_event(e) {
       zoom_out();
       return;
     }
+
+    if ( e.key === "_") {
+      zoom_out();
+      return;
+    }
+
   }
 
   if ( e.key === 'ArrowRight' || e.key === 'n') {
@@ -4947,16 +5228,23 @@ function _via_reg_canvas_keydown_handler(e) {
 
   if (_via_current_image_loaded) {
     if ( e.key === 'Enter' ) {
-        if ( _via_current_shape === VIA_REGION_SHAPE.POLYLINE ||
-             _via_current_shape === VIA_REGION_SHAPE.POLYGON) {
-          _via_polyshape_finish_drawing();
-        }
+        // if ( _via_current_shape === VIA_REGION_SHAPE.POLYLINE ||
+        //      _via_current_shape === VIA_REGION_SHAPE.POLYGON) {
+        //   _via_polyshape_finish_drawing();
+        // }
+      sel_all_regions();
+      e.preventDefault();
+      return;
+
     }
     if ( e.key === 'Backspace' ) {
-        if ( _via_current_shape === VIA_REGION_SHAPE.POLYLINE ||
-             _via_current_shape === VIA_REGION_SHAPE.POLYGON) {
-          _via_polyshape_delete_last_vertex();
-        }
+        // if ( _via_current_shape === VIA_REGION_SHAPE.POLYLINE ||
+        //      _via_current_shape === VIA_REGION_SHAPE.POLYGON) {
+        //   _via_polyshape_delete_last_vertex();
+        // }
+      del_sel_regions();
+      e.preventDefault();
+      return;
     }
 
     if ( e.key === 'a' ) {
@@ -5118,72 +5406,244 @@ function _via_polyshape_add_new_polyshape(img_id, region_shape, region_id) {
 }
 
 function del_sel_regions() {
-  if ( _via_display_area_content_name === VIA_DISPLAY_AREA_CONTENT_NAME.IMAGE_GRID ) {
-    return;
-  }
+  // if ( _via_display_area_content_name === VIA_DISPLAY_AREA_CONTENT_NAME.IMAGE_GRID ) {
+  //   return;
+  // }
 
-  if ( !_via_current_image_loaded ) {
-    show_message('First load some images!');
-    return;
-  }
+  // if ( !_via_current_image_loaded ) {
+  //   show_message('First load some images!');
+  //   return;
+  // }
 
-  var del_region_count = 0;
-  if ( _via_is_all_region_selected ) {
-    del_region_count = _via_canvas_regions.length;
-    _via_canvas_regions.splice(0);
-    _via_img_metadata[_via_image_id].regions.splice(0);
-  } else {
-    var sorted_sel_reg_id = [];
-    for ( var i = 0; i < _via_canvas_regions.length; ++i ) {
-      if ( _via_region_selected_flag[i] ) {
-        sorted_sel_reg_id.push(i);
-        _via_region_selected_flag[i] = false;
-      }
-    }
-    sorted_sel_reg_id.sort( function(a,b) {
-      return (b-a);
-    });
-    for ( var i = 0; i < sorted_sel_reg_id.length; ++i ) {
-      _via_canvas_regions.splice( sorted_sel_reg_id[i], 1);
-      _via_img_metadata[_via_image_id].regions.splice( sorted_sel_reg_id[i], 1);
-      del_region_count += 1;
-    }
+  // var del_region_count = 0;
+  // if ( _via_is_all_region_selected ) {
+  //   del_region_count = _via_canvas_regions.length;
+  //   _via_canvas_regions.splice(0);
+  //   _via_img_metadata[_via_image_id].regions.splice(0);
+  // } else {
+  //   var sorted_sel_reg_id = [];
+  //   for ( var i = 0; i < _via_canvas_regions.length; ++i ) {
+  //     if ( _via_region_selected_flag[i] ) {
+  //       sorted_sel_reg_id.push(i);
+  //       _via_region_selected_flag[i] = false;
+  //     }
+  //   }
+  //   sorted_sel_reg_id.sort( function(a,b) {
+  //     return (b-a);
+  //   });
+  //   for ( var i = 0; i < sorted_sel_reg_id.length; ++i ) {
+  //     _via_canvas_regions.splice( sorted_sel_reg_id[i], 1);
+  //     _via_img_metadata[_via_image_id].regions.splice( sorted_sel_reg_id[i], 1);
+  //     del_region_count += 1;
+  //   }
 
-    if ( sorted_sel_reg_id.length ) {
-      _via_reg_canvas.style.cursor = "default";
-    }
-  }
+  //   if ( sorted_sel_reg_id.length ) {
+  //     _via_reg_canvas.style.cursor = "default";
+  //   }
+  // }
 
-  _via_is_all_region_selected = false;
-  _via_is_region_selected     = false;
-  _via_user_sel_region_id     = -1;
+  // _via_is_all_region_selected = false;
+  // _via_is_region_selected     = false;
+  // _via_user_sel_region_id     = -1;
 
-  if ( _via_canvas_regions.length === 0 ) {
-    // all regions were deleted, hence clear region canvas
-    _via_clear_reg_canvas();
-  } else {
+  // if ( _via_canvas_regions.length === 0 ) {
+  //   // all regions were deleted, hence clear region canvas
+  //   _via_clear_reg_canvas();
+  // } else {
+  //   _via_redraw_reg_canvas();
+  // }
+  // _via_reg_canvas.focus();
+  // annotation_editor_show();
+
+  // show_message('Deleted ' + del_region_count + ' selected regions');
+
+  // console.log("delete")
     _via_redraw_reg_canvas();
-  }
-  _via_reg_canvas.focus();
-  annotation_editor_show();
+  var test_json = brushShape.exportJSON({asString:false});
+  if (test_json[0]=='Path'){
+    brushShape.removeSegments();
+    brushShape.remove();
 
-  show_message('Deleted ' + del_region_count + ' selected regions');
+  } else {
+    brushShape.removeChildren();
+  }
+
+
 }
 
 function sel_all_regions() {
-  if ( _via_display_area_content_name === VIA_DISPLAY_AREA_CONTENT_NAME.IMAGE_GRID ) {
-    image_grid_group_toggle_select_all();
-    return;
-  }
+  // if ( _via_display_area_content_name === VIA_DISPLAY_AREA_CONTENT_NAME.IMAGE_GRID ) {
+  //   image_grid_group_toggle_select_all();
+  //   return;
+  // }
 
-  if (!_via_current_image_loaded) {
-    show_message('First load some images!');
-    return;
-  }
+  // if (!_via_current_image_loaded) {
+  //   show_message('First load some images!');
+  //   return;
+  // }
 
-  toggle_all_regions_selection(true);
-  _via_is_all_region_selected = true;
-  _via_redraw_reg_canvas();
+  // toggle_all_regions_selection(true);
+  // _via_is_all_region_selected = true;
+  // _via_redraw_reg_canvas();
+
+
+  var test_json = brushShape.exportJSON({asString:false});
+
+  var numpoints = 100;
+
+  if (test_json[0]=='Path'){
+    // console.log(test_json[1].segments)
+
+    var all_points_x = [];
+    var all_points_y = [];
+
+    var canvas_all_points_x = [];
+    var canvas_all_points_y = [];
+    var n = test_json[1].segments.length;
+
+    var i;
+
+
+    var interval;
+    interval = 1;
+    if (n > numpoints) {
+      interval = Math.floor(n/numpoints);
+    }
+    for ( i = 0; i < n; ++i ) {
+      if (i % interval == 0) {
+        if ( test_json[1].segments[i].length == 2) {
+
+          all_points_x.push(Math.round( test_json[1].segments[i][0]* _via_canvas_scale  ) );
+          all_points_y.push(Math.round(test_json[1].segments[i][1] * _via_canvas_scale ) );
+
+          canvas_all_points_x.push(Math.round( test_json[1].segments[i][0]  ) );
+          canvas_all_points_y.push(Math.round(test_json[1].segments[i][1]  ) );
+        } else {
+
+          all_points_x.push(Math.round( test_json[1].segments[i][0][0]* _via_canvas_scale  ) );
+          all_points_y.push(Math.round(test_json[1].segments[i][0][1] * _via_canvas_scale ) );
+
+          canvas_all_points_x.push(Math.round( test_json[1].segments[i][0][0]  ) );
+          canvas_all_points_y.push(Math.round(test_json[1].segments[i][0][1]  ) );
+        }
+      }
+     }
+     var img_id = _via_image_id;
+
+      var polygon_region = new file_region();
+      polygon_region.shape_attributes['name'] = VIA_REGION_SHAPE.POLYLINE;
+      polygon_region.shape_attributes['all_points_x'] = all_points_x;
+      polygon_region.shape_attributes['all_points_y'] = all_points_y;
+      _via_img_metadata[img_id].regions.push( polygon_region);
+
+
+      var canvas_polygon_region = new file_region();
+      canvas_polygon_region.shape_attributes['name'] = VIA_REGION_SHAPE.POLYLINE;
+      canvas_polygon_region.shape_attributes['all_points_x'] = canvas_all_points_x;
+      canvas_polygon_region.shape_attributes['all_points_y'] = canvas_all_points_y;
+
+
+      _via_canvas_regions.push(canvas_polygon_region);
+
+      // console.log("fourth")
+      // console.log(_via_canvas_scale)
+
+  } else {
+    // console.log(test_json[1].children)
+
+    var j;
+    var m = test_json[1].children.length;
+    for ( j= 0; j < m; ++j){
+      var pth = test_json[1].children[j];
+      var n = pth[1].segments.length;
+
+      var all_points_x = [];
+      var all_points_y = [];
+
+      var canvas_all_points_x = [];
+      var canvas_all_points_y = [];
+      var i;
+      var interval;
+      interval = 1;
+      if (n > numpoints) {
+        interval = Math.floor(n/numpoints);
+      }
+      for ( i = 0; i < n; ++i ) {
+        if (i % interval == 0) {
+          if ( pth[1].segments[i].length == 2) {
+
+            all_points_x.push(Math.round( pth[1].segments[i][0]* _via_canvas_scale   ) );
+            all_points_y.push(Math.round(pth[1].segments[i][1]* _via_canvas_scale   ) );
+
+            canvas_all_points_x.push(Math.round( pth[1].segments[i][0]  ) );
+            canvas_all_points_y.push(Math.round(pth[1].segments[i][1]  ) );
+          } else {
+            all_points_x.push(Math.round( pth[1].segments[i][0][0]* _via_canvas_scale   ) );
+            all_points_y.push(Math.round(pth[1].segments[i][0][1]* _via_canvas_scale   ) );
+
+            canvas_all_points_x.push(Math.round( pth[1].segments[i][0][0]  ) );
+            canvas_all_points_y.push(Math.round(pth[1].segments[i][0][1]  ) );
+          }
+        }
+      }
+
+      var img_id = _via_image_id;
+
+      var polygon_region = new file_region();
+      polygon_region.shape_attributes['name'] = VIA_REGION_SHAPE.POLYLINE;
+      polygon_region.shape_attributes['all_points_x'] = all_points_x;
+      polygon_region.shape_attributes['all_points_y'] = all_points_y;
+      _via_img_metadata[img_id].regions.push( polygon_region);
+
+
+      var canvas_polygon_region = new file_region();
+      canvas_polygon_region.shape_attributes['name'] = VIA_REGION_SHAPE.POLYLINE;
+      canvas_polygon_region.shape_attributes['all_points_x'] = canvas_all_points_x;
+      canvas_polygon_region.shape_attributes['all_points_y'] = canvas_all_points_y;
+
+      _via_canvas_regions.push(canvas_polygon_region);
+
+
+      // console.log("fifth")
+      // console.log(_via_canvas_scale)
+
+    }
+
+  }
+  
+
+
+
+
+
+    _via_redraw_reg_canvas();
+  //var test_json = brushShape.exportJSON({asString:false});
+  if (test_json[0]=='Path'){
+    brushShape.removeSegments();
+    brushShape.remove();
+
+  } else {
+    brushShape.removeChildren();
+  }
+  
+    
+
+  // if ( _via_display_area_content_name === VIA_DISPLAY_AREA_CONTENT_NAME.IMAGE_GRID ) {
+  //   image_grid_group_toggle_select_all();
+  //   return;
+  // }
+
+  // if (!_via_current_image_loaded) {
+  //   show_message('First load some images!');
+  //   return;
+  // }
+
+  // toggle_all_regions_selection(true);
+  // _via_is_all_region_selected = true;
+  // _via_redraw_reg_canvas();
+
+
+
 }
 
 function copy_sel_regions() {
@@ -5594,52 +6054,64 @@ function reset_zoom_level() {
 }
 
 function zoom_in() {
-  if ( _via_display_area_content_name === VIA_DISPLAY_AREA_CONTENT_NAME.IMAGE_GRID ) {
-    image_grid_image_size_increase();
-    show_message('Increased size of images shown in image grid');
-    return;
+  // if ( _via_display_area_content_name === VIA_DISPLAY_AREA_CONTENT_NAME.IMAGE_GRID ) {
+  //   image_grid_image_size_increase();
+  //   show_message('Increased size of images shown in image grid');
+  //   return;
+  // }
+
+  // if (!_via_current_image_loaded) {
+  //   show_message('First load some images!');
+  //   return;
+  // }
+
+  // if ( _via_is_user_drawing_polygon || _via_is_user_drawing_region ) {
+  //   return;
+  // }
+
+  // if (_via_canvas_zoom_level_index === (VIA_CANVAS_ZOOM_LEVELS.length-1)) {
+  //   show_message('Further zoom-in not possible');
+  // } else {
+  //   var new_zoom_level_index = _via_canvas_zoom_level_index + 1;
+  //   set_zoom( new_zoom_level_index );
+  //   show_message('Zoomed in to level ' + VIA_CANVAS_ZOOM_LEVELS[_via_canvas_zoom_level_index] + 'X');
+  // }
+
+  brushRadius =  brushRadius + 4;
+  if (brushRadius>30) {
+    brushRadius = 30;
   }
 
-  if (!_via_current_image_loaded) {
-    show_message('First load some images!');
-    return;
-  }
-
-  if ( _via_is_user_drawing_polygon || _via_is_user_drawing_region ) {
-    return;
-  }
-
-  if (_via_canvas_zoom_level_index === (VIA_CANVAS_ZOOM_LEVELS.length-1)) {
-    show_message('Further zoom-in not possible');
-  } else {
-    var new_zoom_level_index = _via_canvas_zoom_level_index + 1;
-    set_zoom( new_zoom_level_index );
-    show_message('Zoomed in to level ' + VIA_CANVAS_ZOOM_LEVELS[_via_canvas_zoom_level_index] + 'X');
-  }
 }
 
 function zoom_out() {
-  if ( _via_display_area_content_name === VIA_DISPLAY_AREA_CONTENT_NAME.IMAGE_GRID ) {
-    image_grid_image_size_decrease();
-    show_message('Reduced size of images shown in image grid');
-    return;
-  }
+  // if ( _via_display_area_content_name === VIA_DISPLAY_AREA_CONTENT_NAME.IMAGE_GRID ) {
+  //   image_grid_image_size_decrease();
+  //   show_message('Reduced size of images shown in image grid');
+  //   return;
+  // }
 
-  if (!_via_current_image_loaded) {
-    show_message('First load some images!');
-    return;
-  }
+  // if (!_via_current_image_loaded) {
+  //   show_message('First load some images!');
+  //   return;
+  // }
 
-  if ( _via_is_user_drawing_polygon || _via_is_user_drawing_region ) {
-    return;
-  }
+  // if ( _via_is_user_drawing_polygon || _via_is_user_drawing_region ) {
+  //   return;
+  // }
 
-  if (_via_canvas_zoom_level_index === 0) {
-    show_message('Further zoom-out not possible');
-  } else {
-    var new_zoom_level_index = _via_canvas_zoom_level_index - 1;
-    set_zoom( new_zoom_level_index );
-    show_message('Zoomed out to level ' + VIA_CANVAS_ZOOM_LEVELS[_via_canvas_zoom_level_index] + 'X');
+  // if (_via_canvas_zoom_level_index === 0) {
+  //   show_message('Further zoom-out not possible');
+  // } else {
+  //   var new_zoom_level_index = _via_canvas_zoom_level_index - 1;
+  //   set_zoom( new_zoom_level_index );
+  //   show_message('Zoomed out to level ' + VIA_CANVAS_ZOOM_LEVELS[_via_canvas_zoom_level_index] + 'X');
+  // }
+
+  brushRadius = brushRadius - 4;
+
+  if (brushRadius< 4) {
+    brushRadius = 4;
   }
 }
 
@@ -8137,8 +8609,7 @@ function project_get_default_project_name() {
 }
 
 function project_save_with_confirm() {
-  console.log("ts");
-  var config = {'title':'Save Project TEST' };
+  var config = {'title':'Save Project' };
   var input = { 'project_name': { type:'text', name:'Project Name', value:_via_settings.project.name, disabled:false, size:30 },
                 'save_annotations':{ type:'checkbox', name:'Save region and file annotations (i.e. manual annotations)', checked:true, disabled:false},
                 'save_attributes':{ type:'checkbox', name:'Save region and file attributes.', checked:true},
@@ -8147,35 +8618,15 @@ function project_save_with_confirm() {
                 //                'save_images':{type:'checkbox', 'name':'Save images <span class="warning">(WARNING: only recommended for projects containing small number of images)</span>', value:false},
               };
 
-  //invoke_with_user_inputs(project_save_confirmed, input, config);
-  project_save_confirmed(input, config);
-  //window.onbeforeunload = null;
-  //window.close();
-  //window.onbeforeunload = null;
+  invoke_with_user_inputs(project_save_confirmed, input, config);
 }
 
 function project_save_confirmed(input) {
-  //if ( input.project_name.value !== _via_settings.project.name ) {
-  //  project_set_name(input.project_name.value);
-  //}
-  // project_set_name("test123");
-  // // via project
-  // var _via_project = { '_via_settings': _via_settings,
-  //                      '_via_img_metadata': _via_img_metadata,
-  //                      '_via_attributes': _via_attributes,
-  //                      '_via_data_format_version': '2.0.10',
-  //                      '_via_image_id_list': _via_image_id_list
-  //                    };
+  if ( input.project_name.value !== _via_settings.project.name ) {
+    project_set_name(input.project_name.value);
+  }
 
-  // var filename = 'test456.json';
-
-  // var xhr = new XMLHttpRequest();
-  // xhr.open("POST", "/otoliths/map/", true);
-  // xhr.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
-  // // xhr.send(JSON.stringify(_via_project));
-  // xhr.send(JSON.stringify(_via_img_metadata));
-  //============================================================
-
+  // via project
   var _via_project = { '_via_settings': _via_settings,
                        '_via_img_metadata': _via_img_metadata,
                        '_via_attributes': _via_attributes,
@@ -8183,26 +8634,13 @@ function project_save_confirmed(input) {
                        '_via_image_id_list': _via_image_id_list
                      };
 
-  // console.log(JSON.stringify(_via_project));
+  var filename = input.project_name.value + '.json';
+  var data_blob = new Blob( [JSON.stringify(_via_project)],
+                            {type: 'text/json;charset=utf-8'});
 
-  var xhttp = new XMLHttpRequest();
-  xhttp.open("POST", "/interact/", true);
-  xhttp.setRequestHeader('Content-Type', 'application/json');
-  // xhttp.send(JSON.stringify(
-  //     {test: 1}
-  //   ));
-  xhttp.send(JSON.stringify(_via_project));
-  xhttp.onload = function () {
-    console.log("success");
-    alert("success");
-  }
+  save_data_to_local_file(data_blob, filename);
 
-  //var data_blob = new Blob( [JSON.stringify(_via_project)],
-                            //{type: 'text/json;charset=utf-8'});
-
-  //save_data_to_local_file(data_blob, filename);
-  console.log("saved")
-  //user_input_default_cancel_handler();
+  user_input_default_cancel_handler();
 }
 
 function project_open_select_project_file() {
@@ -8218,16 +8656,12 @@ function project_open(pass_var) {
   var selected_file; // = event.target.files[0];
   //console.log(selected_file);
   
-  console.log(pass_var);
-
-  //var test_f = new File(['{"_via_settings":{"ui":{"annotation_editor_height":25,"annotation_editor_fontsize":0.8,"leftsidebar_width":18,"image_grid":{"img_height":80,"rshape_fill":"none","rshape_fill_opacity":0.3,"rshape_stroke":"yellow","rshape_stroke_width":2,"show_region_shape":true,"show_image_policy":"all"},"image":{"region_label":"__via_region_id__","region_color":"__via_default_region_color__","region_label_font":"10px Sans","on_image_annotation_editor_placement":"NEAR_REGION"}},"core":{"buffer_size":18,"filepath":{},"default_filepath":""},"project":{"name":"test_17"}},"_via_img_metadata":{"17_731_70.png3864218":{"filename":"17_731_70.png","size":3864218,"regions":[{"shape_attributes":{"name":"polyline","all_points_x":[1006,1063,1336,1768,1012],"all_points_y":[404,662,813,620,404]},"region_attributes":{}},{"shape_attributes":{"name":"polyline","all_points_x":[475,611,799,904,813,475],"all_points_y":[617,824,830,608,580,620]},"region_attributes":{}}],"file_attributes":{}}},"_via_attributes":{"region":{},"file":{}},"_via_data_format_version":"2.0.10","_via_image_id_list":["17_731_70.png3864218"]}'], "test.json", {
- //   type: "application/json",
-  //})
+  // console.log(pass_var);
 
   var test_f = new File([pass_var], "test.json", {
     type: "application/json",
   })
-  console.log(test_f);
+  // console.log(test_f);
     //var text_reader = new FileReader();
     //text_reader.readAsText(text_file, 'utf-8');
   selected_file = test_f;
@@ -8236,8 +8670,6 @@ function project_open(pass_var) {
 
 function project_open_parse_json_file(project_file_data) {
   var d = JSON.parse(project_file_data);
-  console.log(d);
-  // var d = {}
   if ( d['_via_settings'] && d['_via_img_metadata'] && d['_via_attributes'] ) {
     // import settings
     project_import_settings(d['_via_settings']);
@@ -8453,7 +8885,6 @@ function project_add_new_file(filename, size, file_id) {
 }
 
 function project_file_add_local(event) {
-  console.log(event.target.files);
   var user_selected_images = event.target.files;
   var original_image_count = _via_img_count;
 
@@ -8654,7 +9085,6 @@ function project_import_attributes_from_file(event) {
 function project_import_attributes_from_json(data) {
   try {
     var d = JSON.parse(data);
-    console.log(d);
     var attr;
     var fattr_count = 0;
     var rattr_count = 0;
@@ -10129,16 +10559,10 @@ function _via_show_img(img_index) {
         return;
       } else {
         var search_path_list = _via_file_get_search_path_list();
-        console.log("search path")
-        console.log(search_path_list)
-        //if ( search_path_list.length === 0 ) {
-        //  search_path_list.push("/static/"); // search using just the filename
-        //}
-        search_path_list.push("/static/");
-        console.log(img_index)
-        console.log(img_index)
-        console.log("fiinal search")
-        console.log(search_path_list)
+        if ( search_path_list.length === 0 ) {
+          search_path_list.push('/static/'); // search using just the filename
+        }
+
         _via_file_resolve(img_index, search_path_list).then( function(ok_file_index) {
           _via_show_img(img_index);
         }, function(err_file_index) {
@@ -10789,9 +11213,6 @@ function _via_file_get_search_path_list() {
 function _via_file_resolve(file_index, search_path_list) {
   return new Promise( function(ok_callback, err_callback) {
     var path_index = 0;
-    console.log("file resolve")
-    console.log(file_index)
-    console.log(path_index)
     var p = _via_file_resolve_check_path(file_index, path_index, search_path_list).then(function(ok) {
       ok_callback(ok);
     }, function(err) {
@@ -10805,15 +11226,14 @@ function _via_file_resolve_check_path(file_index, path_index, search_path_list) 
     var img_id = _via_image_id_list[file_index];
     var img = new Image(0,0);
 
-    var img_path = search_path_list[path_index]  + 'detail/' + _via_img_metadata[img_id].filename;
+    var img_path = search_path_list[path_index] + 'detail/' + _via_img_metadata[img_id].filename;
     if ( is_url( _via_img_metadata[img_id].filename ) ) {
       if ( search_path_list[path_index] !== '' ) {
         // we search for the the image filename pointed by URL in local search paths
         img_path = search_path_list[path_index] + 'detail/' + get_filename_from_url( _via_img_metadata[img_id].filename );
       }
     }
-    //img_path = "/static/17_731_70.png";
-    console.log(img_path)
+
     img.setAttribute('src', img_path);
 
     img.addEventListener('load', function() {
@@ -11011,15 +11431,20 @@ function generate_img_index_list(input) {
   return intersect;
 }
 
-// if ( ! _via_is_debug_mode ) {
+if ( ! _via_is_debug_mode ) {
   // warn user of possible loss of data
   window.onbeforeunload = function (e) {
+    e = e || window.event;
 
+    // For IE and Firefox prior to version 4
+    if (e) {
+      e.returnValue = 'Did you save your data?';
+    }
 
     // For Safari
-    return null;
+    return 'Did you save your data?';
   };
-// }
+}
 
 //
 // keep a record of image statistics (e.g. width, height, ...)
@@ -11116,9 +11541,6 @@ function polygon_to_bbox(pts) {
   return [xmin, ymin, xmax-xmin, ymax-ymin];
 }
 </script>
-
-
-
 <!-- END: Contents of file: via.js-->
   </body>
-{% endblock main_body %}
+</html>

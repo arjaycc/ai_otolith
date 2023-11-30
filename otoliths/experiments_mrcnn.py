@@ -2,10 +2,11 @@ from django.shortcuts import render
 import os
 import json
 import numpy as np
-import mrcnn.mrcnn_main as mrcnn_setup
+
 
 
 def start_run_mrcnn(settings):
+    import mrcnn.mrcnn_main as mrcnn_setup
     search_mode = settings['search_mode']
     idr = settings['idr']
     selected = settings['selected']

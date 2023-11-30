@@ -1,0 +1,85 @@
+{% extends "base.html" %}
+
+{% block title %} <h2>Section: Datasets</h2> {% endblock %} 
+
+<!-- Specific Page CSS goes HERE  -->
+{% block stylesheets %}{% endblock stylesheets %}
+
+
+{% block container %}
+
+
+
+<div>
+<form action='/ai/' method='GET'>
+    <select name="aimethod"> Select AI method:
+        <option style="width: 50px;">Mask-RCNN</option>
+        <option style="width: 50px;">U-Net</option>
+        <option style="width: 50px;">CNN Regression</option>
+    </select>
+    <select name="weights"> Select Model Weights:
+        <option style="width: 50px;">mrcnn_1024_otolith_0500.h5</option>
+        <option style="width: 50px;">unet_512x2_newbal_end.h5</option>
+        <option style="width: 50px;">radial_regression_ep400.h5</option>
+    </select>
+    <button >LOAD WEIGHTS</button>
+    <button >LOAD NEW IMAGES</button>
+    <button >TRAIN</button>
+    <button type="submit">PREDICT</button>
+</form>
+
+</div>
+
+
+
+<div class="card-body">
+  <div class="table-responsive">
+    <table class="table">
+      <thead class=" text-primary">
+        <th>
+          ID
+        </th>
+        <th>
+          Name
+        </th>
+        <th>
+          Trained
+        </th>
+        <th>
+          Epoch
+        </th>
+        <th>
+          Test Accuracy
+        </th>
+      </thead>
+      <tbody>
+{% for folder in folders %}
+        <tr>
+            <td>
+                1
+            </td>
+            <td>
+                <a href="{{ folder }}"><h3>Dataset: {{ folder }}</h3></a>
+            </td>
+            <td>
+                True
+            </td>
+            <td>
+                <form action="{{ folder }}/unet/"><input type="submit"  value="Train U-Net">  </form>
+            </td>
+            <td>
+                <form action="{{ folder }}/train_mrcnn/"><input type="submit" value="Train Mask R-CNN"></form> 
+            </td>
+         </tr>
+{% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+
+{% endblock container %}
+
+
+
+<!-- Specific Page JS goes HERE  -->
+{% block javascripts %}{% endblock javascripts %}

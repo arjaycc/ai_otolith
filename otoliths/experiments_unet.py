@@ -1,10 +1,11 @@
 from django.shortcuts import render
 import os
 import json
-import unet.unet_main as unet_setup
+
 
 
 def start_run_unet(settings):
+    import unet.unet_main as unet_setup
     print(settings) 
     set_num = settings['idr']
     if set_num < 0:

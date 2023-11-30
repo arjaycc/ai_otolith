@@ -1,0 +1,37 @@
+{% extends "base.html" %}
+
+{% block title %} <a href="/otoliths/images/"><< Back << </a> {% endblock %} 
+
+<!-- Specific Page CSS goes HERE  -->
+{% block stylesheets %}{% endblock stylesheets %}
+
+
+{% block container %}
+
+
+<a href="?process=LogAdjustment"  onclick="return !window.open(this.href, 'test', '')" target="_blank">Measure</a>
+<span> ||| </span>
+<a href="?process=Blank" onclick="return !window.open(this.href, 'test', '')" target="_blank">Blank</a>
+<span> ||| </span>
+<a href="?process=Segment" onclick="return !window.open(this.href, 'test', '')" target="_blank">Annotate</a>
+<span> ||| </span>
+<a href="?process=Contour">U-Net Segmentation</a>
+<span> ||| </span>
+<a href="?process=SelectRegions">Mask R-CNN Detection</a>
+<span> ||| </span>
+<a href="?process=CoreDetection">Nucleus Detection</a>
+<span> ||| </span>
+<a href="?process=Combined">Combined</a>
+ 
+<div class="img-wrapper" style="display: inline-block; width: 800px; margin: 2px;">
+    <img style="width: 800px; height: 800px; margin: 5px;" src="/static/detail/{{ image_name }}">
+</div>
+
+
+
+{% endblock container %}
+
+
+
+<!-- Specific Page JS goes HERE  -->
+{% block javascripts %}{% endblock javascripts %}
