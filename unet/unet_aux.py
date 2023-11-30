@@ -689,10 +689,12 @@ def data_generator(dataset_array, config, augmentations=[], batch_size=20, valid
             yield inputs, outputs
 
         
-### FOR VISUALIZATION, by Matterport
+### FOR VISUALIZATION, we use the code by Matterport (Copyright (c) 2017) from Mask RCNN implementation
         
 def apply_mask(image, mask, color, alpha=0.5):
-    """Apply the given mask to the image.
+    """
+    >> Copyright (c) 2017 Matterport, Inc. <<
+    Apply the given mask to the image.
     """
     for c in range(3):
         image[:, :, c] = np.where(mask == 1,
@@ -703,6 +705,7 @@ def apply_mask(image, mask, color, alpha=0.5):
 
 def random_colors(N, bright=True):
     """
+    >> Copyright (c) 2017 Matterport, Inc. <<
     Generate random colors.
     To get visually distinct colors, generate them in HSV space then
     convert to RGB.
@@ -721,6 +724,7 @@ def print_instances(image, boxes, masks, class_ids, class_names,
                       show_mask=True, show_bbox=True,
                       colors=None, captions=None):
     """
+    >> Copyright (c) 2017 Matterport, Inc. <<
     boxes: [num_instance, (y1, x1, y2, x2, class_id)] in image coordinates.
     masks: [height, width, num_instances]
     class_ids: [num_instances]

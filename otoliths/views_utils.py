@@ -7,6 +7,38 @@ import os
 import glob
 import numpy as np
 import cv2
+import matplotlib.pyplot as plt
+import colorsys
+import random
+
+def predict_mrcnn(raw_image, sq_img, window, dataset, folder, image_name, mode="annulus"):
+    from mrcnn import model as modellib
+    from mrcnn.mrcnn_aux import InferenceConfig
+    if mode == 'annulus':
+        name = "mrcnn_arcring0run1_2"
+    else:
+        name = "mrcnncore_core_6"
+    inference_config = InferenceConfig()
+    inference_config.RPN_NMS_THRESHOLD =  0.8 #train_params["rpn_nms"]
+    inference_config.DETECTION_MIN_CONFIDENCE = 0.6 #train_params["detection_confidence"]
+    inference_config.DETECTION_NMS_THRESHOLD = 0.2 #train_params["detection_nms"]
+    model = modellib.MaskRCNN(mode="inference", 
+                              config=inference_config,
+                              model_dir='datasets_baltic/{}/'.format(name))
+    OTO_MODEL_PATH = 'datasets_baltic/{}/mrcnn_checkpoint.h5'.format(name)
+    model.load_weights(OTO_MODEL_PATH, by_name=True)
+    results = model.detect([sq_img], verbose=1)
+    r = results[0]
+    print(r)
+    image_copy = sq_img.copy()
+    result_name = "mrcnn_image_{}.png".format(image_name)
+    result_path = "autolith/static/detail/{}".format(result_name)
+
+    cx = 255
+    cy = 255
+    count_detected_masks(results, cx, cy, image_copy=image_copy, class_names=['bg','annulus'], fname=result_name)
+    from keras import backend as K
+    K.clear_session()
 
 
 def predict_unet(raw_image, sq_img, window, dataset, folder, image_name):
@@ -60,10 +92,6 @@ def predict_unet(raw_image, sq_img, window, dataset, folder, image_name):
 
     img_no_mask = sq_img.copy()
     cv2.drawContours(img_no_mask, _contours, -1, (0,255,0), 2)
-    #     for i in range(N):
-#         y1, x1, y2, x2 = boxes[i]
-#         cv2.putText(image, str(captions[i]), (int(x1),int(y1) ),  cv2.FONT_HERSHEY_SIMPLEX,1,(0,255,0), 3 )
-
     skimage.io.imsave('autolith/static/detail/unetcontour_{}'.format(image_name), img_no_mask)
     for c in _contours:
         new_sub_item = {
@@ -84,12 +112,8 @@ def predict_unet(raw_image, sq_img, window, dataset, folder, image_name):
 
     with open("autolith/static/detail/{}.json".format(image_name), "w") as fout:
         json.dump(main_json, fout, indent=4)
-
     result_name = 'unetcontour_{}'.format(image_name)
-    # result_path = "autolith/static/test_again/{}".format(image_name)
-    # print_instances_unet(image_copy, r['rois'],  r['masks'], r['class_ids'], ['bg', 'annulus'], 
-    #     captions=[str(t) for t in range(len(r['masks']))], scores=range(len(r['masks'])), axl=result_path)
-    
+
 
 def load_blank_marks(request, raw_image, sq_img, window, dataset, folder, image_name, markings="dots", mode='default'):
 
@@ -368,3 +392,242 @@ def load_data_marks(request, raw_image, sq_img, window, dataset, folder, image_n
         return render(request, 'otoliths/researchers_interact.html', {'pass_var': json_var, 'fname': image_name, 'mode': 'default'})
     return render(request, 'otoliths/researchers.html', {'pass_var': json_var, 'fname': image_name, 'mode': 'brush'})
 
+
+
+def check_angle_intersection(label, c, angles):
+    idx_label = label[1]
+    idx_c = c[2]
+    angle_label = angles[idx_label]
+    angle_label_start = angle_label[0][2]
+    angle_label_end = angle_label[-1][2]
+    
+    angle_c = angles[idx_c]
+    angle_c_start = angle_c[0][2]
+    angle_c_end = angle_c[-1][2]
+    intersect = False
+    start_angle = None
+    end_angle = None
+    if angle_label_end < angle_c_end:
+        if angle_label_end > angle_c_start:
+            intersect = True
+            if angle_label_start > angle_c_start:
+                start_angle = angle_label_start
+                end_angle = angle_label_end
+            else:
+                start_angle = angle_c_start
+                end_angle = angle_label_end
+
+    if angle_c_end < angle_label_end:
+        if angle_c_end > angle_label_start:
+            intersect = True
+            if angle_label_start > angle_c_start:
+                start_angle = angle_label_start
+                end_angle = angle_c_end
+            else:
+                start_angle = angle_c_start
+                end_angle = angle_c_end
+    return intersect, start_angle, end_angle
+
+def count_detected_masks(results, cx, cy, image_copy=None, class_names=[], fname="test"):
+    r = results[0]
+
+    contours = []
+    for box in r['rois']:
+        y1, x1, y2, x2 = box
+        midx = int((x1+x2)/2.0)
+        midy = int((y1+y2)/2.0)
+        contours.append(box)
+
+    hlist = []
+    alist = []
+    for c in contours:
+        y1, x1, y2, x2 = c
+        hull = [(x1,y1), (x2,y2)]
+        angles = []
+        for item in hull:
+            x = item[0]
+            y = item[1]
+            test = np.arctan2(y-cy,x-cx)*180/np.pi
+            if test >= 0:
+                angle = (90+test)%360
+            else:
+                angle = (90+(360+test))%360
+            angles.append([x,y,angle])
+        angles = sorted(angles, key=lambda x: x[2])
+        alist.append(angles)
+        hlist.append(c)
+
+    clist = []
+    for idx,contour in enumerate(contours):
+        y1, x1, y2, x2 = contour
+        midx = int((x1+x2)/2.0)
+        midy = int((y1+y2)/2.0)
+        dist = ( (midx-cx)**2 + (midy-cy)**2 ) ** 0.5
+        clist.append([contour,dist, idx, midx])
+
+    sorted_c = sorted(clist, key=lambda kx: kx[1], reverse=True)
+
+    labels = []
+    labels_left = []
+    labels_right = []
+    for c in sorted_c:
+        idx = c[2]
+        dist = c[1]
+        midx = c[-1]
+        val = 1
+        key = 0
+        for label in labels:
+            intersect, start_angle, end_angle = check_angle_intersection(label, c, alist)
+            if intersect:
+                val = label[0] + 1
+                key = label[1]
+        labels.append([val, idx, dist, c , midx])
+        if midx > cx:
+            labels_right.append([val, idx, dist, c ])
+        else:
+            labels_left.append([val, idx, dist, c  ])
+    label_list = [l for l in labels]
+    label_list_left = [l[0:2] for l in labels_left]
+    label_list_right = [l[0:2] for l in labels_right]
+    try:
+        sorted_labels = sorted(label_list, key=lambda x: x[0])
+        ai_reading = sorted_labels[-1][0]
+    except:
+        ai_reading = 0
+    try:
+        sorted_labels_left = sorted(label_list_left, key=lambda x: x[0])
+        ai_reading_left = sorted_labels_left[-1][0]
+    except:
+        ai_reading_left = 0
+    try:
+        sorted_labels_right = sorted(label_list_right, key=lambda x: x[0])
+        ai_reading_right = sorted_labels_right[-1][0]
+    except:
+        ai_reading_right = 0
+
+    sorted_labels = sorted(label_list, key=lambda x: x[1])
+    scores = []
+    for s in sorted_labels:
+        scores.append(s[0])
+    scores = np.array(scores, dtype=np.float32)
+
+    captions = []
+    for sc in scores:
+        captions.append("{}".format(int(sc)) )
+    print_instances(image_copy, r['rois'], r['masks'], r['class_ids'], 
+                    class_names, scores= r['scores'], ax="autolith/static/detail/{}".format(fname), captions=captions, 
+                    sorted_labels=sorted_labels, ai_left=ai_reading_left, ai_right=ai_reading_right, cx=cx, cy=cy)
+    return ai_reading
+
+
+### FOR VISUALIZATION, we use the code by Matterport (Copyright (c) 2017) from Mask RCNN implementation
+
+def apply_mask(image, mask, color, alpha=0.5):
+    """
+    >> Copyright (c) 2017 Matterport, Inc. <<
+    Apply the given mask to the image.
+    """
+    for c in range(3):
+        image[:, :, c] = np.where(mask == 1,
+                                  image[:, :, c] *
+                                  (1 - alpha) + alpha * color[c] * 255,
+                                  image[:, :, c])
+    return image
+
+def random_colors(N, bright=True):
+    """
+    >> Copyright (c) 2017 Matterport, Inc. <<
+    Generate random colors.
+    To get visually distinct colors, generate them in HSV space then
+    convert to RGB.
+    """
+    brightness = 1.0 if bright else 0.7
+    hsv = [(i / N, 1, brightness) for i in range(N)]
+    # colors = list(map(lambda c: colorsys.hsv_to_rgb(*c), hsv))
+    colors = []
+    for hh in hsv:
+        colors.append(colorsys.hsv_to_rgb(*hh))
+    random.shuffle(colors)
+    return colors
+
+
+def print_instances(image, boxes, masks, class_ids, class_names,
+                      scores=None, title="",
+                      figsize=(16, 16), ax=None,
+                      show_mask=True, show_bbox=True,
+                      colors=None, captions=None, sorted_labels=None, ai_left=0, ai_right=0, cx=255, cy=255):
+    """
+    >> Copyright (c) 2017 Matterport, Inc. <<
+    boxes: [num_instance, (y1, x1, y2, x2, class_id)] in image coordinates.
+    masks: [height, width, num_instances]
+    class_ids: [num_instances]
+    class_names: list of class names of the dataset
+    scores: (optional) confidence scores for each box
+    title: (optional) Figure title
+    show_mask, show_bbox: To show masks and bounding boxes or not
+    figsize: (optional) the size of the image
+    colors: (optional) An array or colors to use with each object
+    captions: (optional) A list of strings to use as captions for each object
+    """
+    # Number of instances
+    N = boxes.shape[0]
+    if not N:
+        print("\n*** No instances to display *** \n")
+    else:
+        assert boxes.shape[0] == masks.shape[-1] == class_ids.shape[0]
+
+    # If no axis is passed, create one and automatically call show()
+    auto_show = False
+#     if not ax:
+    _, axp = plt.subplots(1, figsize=figsize)
+#         auto_show = True
+    axp.axis('off')
+    plt.tight_layout()
+
+    # Generate random colors
+    colors = colors or random_colors(N)
+    
+    # Show area outside image boundaries.
+    height, width = image.shape[:2]
+
+    from matplotlib import patches, lines
+    from matplotlib.patches import Polygon
+    masked_image = image.astype(np.uint32).copy()
+    for i in range(N):
+        color = colors[i]
+
+        # Bounding box
+        if not np.any(boxes[i]):
+            # Skip this instance. Has no bbox. Likely lost in image cropping.
+            continue
+        y1, x1, y2, x2 = boxes[i]
+        p = patches.Rectangle((x1, y1), x2 - x1, y2 - y1, linewidth=4,
+                            alpha=0.7, linestyle="dashed",
+                            edgecolor=color, facecolor='none')
+        axp.add_patch(p)
+        # Label
+        if not captions:
+            class_id = class_ids[i]
+            score = scores[i] if scores is not None else None
+            label = class_names[class_id]
+            x = random.randint(x1, (x1 + x2) // 2)
+            caption = "{} {}".format(label, score) if score else label
+        else:
+            caption = captions[i]
+        lab = sorted_labels[i]
+        if lab[-1] > cx:
+            caption = '{}'.format(ai_right - int(caption) + 1)
+        else:
+            caption = '{}'.format(ai_left - int(caption) + 1)
+        score_top = "annulus {:.3f}".format(scores[i])
+        axp.text(x1-27, y1+8, score_top, color='w', size=24, backgroundcolor="none")  
+        axp.text(x2, y2, caption, color='w', size=24, backgroundcolor="none")
+
+        # Mask
+        mask = masks[:, :, i]
+        if show_mask:
+            masked_image = apply_mask(masked_image, mask, color)
+
+    axp.imshow(masked_image.astype(np.uint8))
+    plt.savefig(ax, transparent=False)
+    return masked_image #plt.gcf()
