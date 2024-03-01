@@ -11,6 +11,7 @@ U-Net Code References:
         UNET-TGS: https://medium.com/@harshall.lamba/understanding-semantic-segmentation-with-unet-6be4f42d4b47 
         https://github.com/nikhilroxtomar/Unet-with-Pretrained-Encoder/tree/master
         https://www.kaggle.com/code/aithammadiabdellatif/vgg16-u-net
+        https://www.kaggle.com/code/basu369victor/transferlearning-and-unet-to-segment-rocks-on-moon
         https://www.kaggle.com/code/mistag/train-keras-u-net-mobilenetv2
 
 Data Loading Reference:
