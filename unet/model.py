@@ -6,7 +6,8 @@ U-Net Code References:
         https://stackoverflow.com/questions/50255438/pixel-wise-loss-weight-for-image-segmentation-in-keras
         https://arxiv.org/pdf/1505.04597.pdf
     U-Net construction:
-        https://stackoverflow.com/questions/58134005/keras-u-net-weighted-loss-implementation
+        https://stackoverflow.com/questions/58134005/keras-u-net-weighted-loss-implementation (->> which points to 
+            another reference (https://jaidevd.com/posts/weighted-loss-functions-for-instance-segmentation/)
         UNET-TGS: https://medium.com/@harshall.lamba/understanding-semantic-segmentation-with-unet-6be4f42d4b47 
         https://github.com/nikhilroxtomar/Unet-with-Pretrained-Encoder/tree/master
         https://www.kaggle.com/code/aithammadiabdellatif/vgg16-u-net

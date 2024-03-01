@@ -6,8 +6,12 @@ U-Net Code References:
         https://stackoverflow.com/questions/50255438/pixel-wise-loss-weight-for-image-segmentation-in-keras
         https://arxiv.org/pdf/1505.04597.pdf
     U-Net construction:
-        https://stackoverflow.com/questions/58134005/keras-u-net-weighted-loss-implementation
+        https://stackoverflow.com/questions/58134005/keras-u-net-weighted-loss-implementation (->> which points to 
+            another reference (https://jaidevd.com/posts/weighted-loss-functions-for-instance-segmentation/)
         UNET-TGS: https://medium.com/@harshall.lamba/understanding-semantic-segmentation-with-unet-6be4f42d4b47 
+        https://github.com/nikhilroxtomar/Unet-with-Pretrained-Encoder/tree/master
+        https://www.kaggle.com/code/aithammadiabdellatif/vgg16-u-net
+        https://www.kaggle.com/code/mistag/train-keras-u-net-mobilenetv2
 
 Data Loading Reference:
     Mask R-CNN
@@ -269,7 +273,8 @@ def unet_weight_map(y, wc=None, w0 = 10, sigma = 5):
 class OtolithConfig(config.Config):
     """
     Config Base Class
-    Copyright (c) 2017 Matterport, Inc.
+    modified for U-Net based from https://github.com/matterport/Mask_RCNN 
+    Copyright (c) 2017 Matterport, Inc. (Written by Waleed Abdulla)
     """
     NAME = "otolith"
     IMAGES_PER_GPU = 1
@@ -283,7 +288,8 @@ class OtolithConfig(config.Config):
 class InferenceConfig(OtolithConfig):
     """
     Config Base Class
-    Copyright (c) 2017 Matterport, Inc.
+    modified for U-Net based from https://github.com/matterport/Mask_RCNN 
+    Copyright (c) 2017 Matterport, Inc. (Written by Waleed Abdulla)
     """
     
     GPU_COUNT = 1
@@ -296,6 +302,7 @@ with open('datasets_baltic/all_data_map.json') as fson:
 class OtolithDataset(utils.Dataset):
     """
     Dataset Base Class and functions
+    modified for U-Net based from https://github.com/matterport/Mask_RCNN
     Copyright (c) 2017 Matterport, Inc.
     """
     
@@ -421,6 +428,7 @@ class OtolithDataset(utils.Dataset):
 class InferenceDataset(utils.Dataset):
     """
     Dataset Base Class and functions
+    modified for U-Net based from https://github.com/matterport/Mask_RCNN
     Copyright (c) 2017 Matterport, Inc.
     """
     
@@ -590,7 +598,7 @@ def load_image_gt_from_array(dataset_array, config, image_id):
 
 def data_generator(dataset_array, config, augmentations=[], batch_size=20, validation=False, channels=3):
     """
-    data generator adapted from Matterport Mask RCNN implementation modified for U-Net
+    data generator adapted from https://github.com/matterport/Mask_RCNN modified for U-Net
     """
 
     import time
@@ -689,7 +697,12 @@ def data_generator(dataset_array, config, augmentations=[], batch_size=20, valid
             yield inputs, outputs
 
         
-### FOR VISUALIZATION, we use the code by Matterport (Copyright (c) 2017) from Mask RCNN implementation
+### FOR VISUALIZATION, we use the relevant code from https://github.com/matterport/Mask_RCNN
+"""
+Copyright (c) 2017 Matterport, Inc.
+Licensed under the MIT License (see LICENSE for details)
+Written by Waleed Abdulla
+"""
         
 def apply_mask(image, mask, color, alpha=0.5):
     """
