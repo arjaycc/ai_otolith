@@ -232,18 +232,18 @@ def train(name='unet', data_params={}, unet_params={}, train_params={}, settings
     adam = optimizers.Adam(lr=0.0004, decay=0.0)
     if TRANSFER:
         if LOSS_FUNCTION == 'edge':
-            model = modellib.get_weighted_unet_with_vgg_edge(input_shape, n_filters=4, dropout=0.15, batchnorm=True)
+            model = modellib.get_weighted_unet_with_vgg_edge(input_shape, n_filters_base=4)
         elif LOSS_FUNCTION == 'weighted':
-            model = modellib.get_weighted_unet_with_vgg(input_shape, n_filters=4, dropout=0.15, batchnorm=True)
+            model = modellib.get_weighted_unet_with_vgg(input_shape, n_filters_base=4)
         else:
-            model = modellib.get_weighted_unet_with_vgg_both(input_shape, n_filters=4, dropout=0.15, batchnorm=True)
+            model = modellib.get_weighted_unet_with_vgg_both(input_shape, n_filters_base=4)
     else:
         if LOSS_FUNCTION == 'edge':
-            model = modellib.get_weighted_unet_edge(input_shape, n_filters=4, dropout=0.15, batchnorm=True)
+            model = modellib.get_weighted_unet_edge(input_shape, n_filters_base=4)
         elif LOSS_FUNCTION == 'weighted':
-            model = modellib.get_weighted_unet(input_shape, n_filters=4, dropout=0.15, batchnorm=True)
+            model = modellib.get_weighted_unet(input_shape, n_filters_base=4)
         else:
-            model = modellib.get_weighted_unet_both(input_shape, n_filters=4, dropout=0.15, batchnorm=True)
+            model = modellib.get_weighted_unet_both(input_shape, n_filters_base=4)
 
 
     model.compile(optimizer=adam, metrics=['accuracy', 'mse', 'mape']) # loss=my_loss
@@ -308,8 +308,6 @@ def evaluate(name='unet', full_ring_type=False, data_params={}, settings={}):
     if domain == 'datasets_baltic':
         with open('datasets_baltic/all_data_map.json') as fson:
             data_map = json.load(fson)
-        with open('datasets_baltic/all_bounds_1155.json') as fson:
-            all_bounds_1155 = json.load(fson)
 
     exact_count = 0
     offbyone_count = 0

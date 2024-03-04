@@ -261,7 +261,7 @@ def mrcnn_mask_edge_loss_graph(y_pred, y_true):
         return edge_loss
 
 
-def get_weighted_unet_with_vgg(input_shape, n_filters = 4, dropout = 0.1, batchnorm = True, is_training=True):
+def get_weighted_unet_with_vgg(input_shape, n_filters_base = 4):
     ip = Input(input_shape, name='img')
     weight_ip = Input(shape=(input_shape[0],input_shape[1],1), name='weighted_ip')
 
@@ -269,7 +269,7 @@ def get_weighted_unet_with_vgg(input_shape, n_filters = 4, dropout = 0.1, batchn
     z = encoder.output
     encoder_output = z
 
-    #---------------------------------
+    #--- n_filters_base not in used --> num filters not currently tune-able)
     conv5 = encoder_output
     conv4 = encoder.get_layer('block5_conv3').output
     conv3 = encoder.get_layer('block4_conv3').output
@@ -317,57 +317,57 @@ def get_weighted_unet_with_vgg(input_shape, n_filters = 4, dropout = 0.1, batchn
 
 
 
-def get_weighted_unet(input_shape, n_filters = 4, dropout = 0.1, batchnorm = True, is_training=True):
+def get_weighted_unet(input_shape, n_filters_base = 4):
     ip = Input(input_shape, name='img')
     weight_ip = Input(shape= (input_shape[0], input_shape[1],1), name='weighted_ip')
 
-    # adding the layers
-    conv1 = Conv2D(n_filters * 1, 3, activation='relu', padding='same', kernel_initializer='he_normal')(ip)
-    conv1 = Conv2D(n_filters * 1, 3, activation='relu', padding='same', kernel_initializer='he_normal')(conv1)
+    # renamed n_filters to n_filters_base (implemented for easier tuning)
+    conv1 = Conv2D(n_filters_base * 1, 3, activation='relu', padding='same', kernel_initializer='he_normal')(ip)
+    conv1 = Conv2D(n_filters_base * 1, 3, activation='relu', padding='same', kernel_initializer='he_normal')(conv1)
     conv1 = Dropout(0.1)(conv1)
     mpool1 = MaxPool2D()(conv1)
 
-    conv2 = Conv2D(n_filters * 2, 3, activation='relu', padding='same', kernel_initializer='he_normal')(mpool1)
-    conv2 = Conv2D(n_filters * 2, 3, activation='relu', padding='same', kernel_initializer='he_normal')(conv2)
+    conv2 = Conv2D(n_filters_base * 2, 3, activation='relu', padding='same', kernel_initializer='he_normal')(mpool1)
+    conv2 = Conv2D(n_filters_base * 2, 3, activation='relu', padding='same', kernel_initializer='he_normal')(conv2)
     conv2 = Dropout(0.2)(conv2)
     mpool2 = MaxPool2D()(conv2)
 
-    conv3 = Conv2D(n_filters * 4, 3, activation='relu', padding='same', kernel_initializer='he_normal')(mpool2)
-    conv3 = Conv2D(n_filters * 4, 3, activation='relu', padding='same', kernel_initializer='he_normal')(conv3)
+    conv3 = Conv2D(n_filters_base * 4, 3, activation='relu', padding='same', kernel_initializer='he_normal')(mpool2)
+    conv3 = Conv2D(n_filters_base * 4, 3, activation='relu', padding='same', kernel_initializer='he_normal')(conv3)
     conv3 = Dropout(0.3)(conv3)
     mpool3 = MaxPool2D()(conv3)
 
-    conv4 = Conv2D(n_filters * 8, 3, activation='relu', padding='same', kernel_initializer='he_normal')(mpool3)
-    conv4 = Conv2D(n_filters * 8, 3, activation='relu', padding='same', kernel_initializer='he_normal')(conv4)
+    conv4 = Conv2D(n_filters_base * 8, 3, activation='relu', padding='same', kernel_initializer='he_normal')(mpool3)
+    conv4 = Conv2D(n_filters_base * 8, 3, activation='relu', padding='same', kernel_initializer='he_normal')(conv4)
     conv4 = Dropout(0.4)(conv4)
     mpool4 = MaxPool2D()(conv4)
 
-    conv5 = Conv2D(n_filters * 16, 3, activation='relu', padding='same', kernel_initializer='he_normal')(mpool4)
-    conv5 = Conv2D(n_filters * 16, 3, activation='relu', padding='same', kernel_initializer='he_normal')(conv5)
+    conv5 = Conv2D(n_filters_base * 16, 3, activation='relu', padding='same', kernel_initializer='he_normal')(mpool4)
+    conv5 = Conv2D(n_filters_base * 16, 3, activation='relu', padding='same', kernel_initializer='he_normal')(conv5)
     conv5 = Dropout(0.5)(conv5)
 
-    up6 = Conv2DTranspose(n_filters * 8, 2, strides=2, kernel_initializer='he_normal', padding='same')(conv5)
+    up6 = Conv2DTranspose(n_filters_base * 8, 2, strides=2, kernel_initializer='he_normal', padding='same')(conv5)
     conv6 = Concatenate()([up6, conv4])
-    conv6 = Conv2D(n_filters * 8, 3, activation='relu', padding='same', kernel_initializer='he_normal')(conv6)
-    conv6 = Conv2D(n_filters * 8, 3, activation='relu', padding='same', kernel_initializer='he_normal')(conv6)
+    conv6 = Conv2D(n_filters_base * 8, 3, activation='relu', padding='same', kernel_initializer='he_normal')(conv6)
+    conv6 = Conv2D(n_filters_base * 8, 3, activation='relu', padding='same', kernel_initializer='he_normal')(conv6)
     conv6 = Dropout(0.4)(conv6)
 
-    up7 = Conv2DTranspose(n_filters * 4, 2, strides=2, kernel_initializer='he_normal', padding='same')(conv6)
+    up7 = Conv2DTranspose(n_filters_base * 4, 2, strides=2, kernel_initializer='he_normal', padding='same')(conv6)
     conv7 = Concatenate()([up7, conv3])
-    conv7 = Conv2D(n_filters * 4, 3, activation='relu', padding='same', kernel_initializer='he_normal')(conv7)
-    conv7 = Conv2D(n_filters * 4, 3, activation='relu', padding='same', kernel_initializer='he_normal')(conv7)
+    conv7 = Conv2D(n_filters_base * 4, 3, activation='relu', padding='same', kernel_initializer='he_normal')(conv7)
+    conv7 = Conv2D(n_filters_base * 4, 3, activation='relu', padding='same', kernel_initializer='he_normal')(conv7)
     conv7 = Dropout(0.3)(conv7)
 
-    up8 = Conv2DTranspose(n_filters * 2, 2, strides=2, kernel_initializer='he_normal', padding='same')(conv7)
+    up8 = Conv2DTranspose(n_filters_base * 2, 2, strides=2, kernel_initializer='he_normal', padding='same')(conv7)
     conv8 = Concatenate()([up8, conv2])
-    conv8 = Conv2D(n_filters * 2, 3, activation='relu', padding='same', kernel_initializer='he_normal')(conv8)
-    conv8 = Conv2D(n_filters * 2, 3, activation='relu', padding='same', kernel_initializer='he_normal')(conv8)
+    conv8 = Conv2D(n_filters_base * 2, 3, activation='relu', padding='same', kernel_initializer='he_normal')(conv8)
+    conv8 = Conv2D(n_filters_base * 2, 3, activation='relu', padding='same', kernel_initializer='he_normal')(conv8)
     conv8 = Dropout(0.2)(conv8)
 
-    up9 = Conv2DTranspose(n_filters * 1, 2, strides=2, kernel_initializer='he_normal', padding='same')(conv8)
+    up9 = Conv2DTranspose(n_filters_base * 1, 2, strides=2, kernel_initializer='he_normal', padding='same')(conv8)
     conv9 = Concatenate()([up9, conv1])
-    conv9 = Conv2D(n_filters * 1, 3, activation='relu', padding='same', kernel_initializer='he_normal')(conv9)
-    conv9 = Conv2D(n_filters * 1, 3, activation='relu', padding='same', kernel_initializer='he_normal')(conv9)
+    conv9 = Conv2D(n_filters_base * 1, 3, activation='relu', padding='same', kernel_initializer='he_normal')(conv9)
+    conv9 = Conv2D(n_filters_base * 1, 3, activation='relu', padding='same', kernel_initializer='he_normal')(conv9)
     conv9 = Dropout(0.1)(conv9)
 
     c10 = Conv2D(1, (1, 1), activation='sigmoid', kernel_initializer='he_normal', name="output_sigmoid_layer")(conv9)
@@ -381,57 +381,57 @@ def get_weighted_unet(input_shape, n_filters = 4, dropout = 0.1, batchnorm = Tru
 
 
 
-def get_weighted_unet_edge(input_shape, n_filters = 4, dropout = 0.1, batchnorm = True, is_training=True):
+def get_weighted_unet_edge(input_shape, n_filters_base = 4):
     ip = Input(input_shape, name='img')
     weight_ip = Input(shape= (input_shape[0], input_shape[1],1), name='weighted_ip')
 
-    # adding the layers
-    conv1 = Conv2D(n_filters * 1, 3, activation='relu', padding='same', kernel_initializer='he_normal')(ip)
-    conv1 = Conv2D(n_filters * 1, 3, activation='relu', padding='same', kernel_initializer='he_normal')(conv1)
+    # renamed n_filters to n_filters_base (implemented for easier tuning)
+    conv1 = Conv2D(n_filters_base * 1, 3, activation='relu', padding='same', kernel_initializer='he_normal')(ip)
+    conv1 = Conv2D(n_filters_base * 1, 3, activation='relu', padding='same', kernel_initializer='he_normal')(conv1)
     conv1 = Dropout(0.1)(conv1)
     mpool1 = MaxPool2D()(conv1)
 
-    conv2 = Conv2D(n_filters * 2, 3, activation='relu', padding='same', kernel_initializer='he_normal')(mpool1)
-    conv2 = Conv2D(n_filters * 2, 3, activation='relu', padding='same', kernel_initializer='he_normal')(conv2)
+    conv2 = Conv2D(n_filters_base * 2, 3, activation='relu', padding='same', kernel_initializer='he_normal')(mpool1)
+    conv2 = Conv2D(n_filters_base * 2, 3, activation='relu', padding='same', kernel_initializer='he_normal')(conv2)
     conv2 = Dropout(0.2)(conv2)
     mpool2 = MaxPool2D()(conv2)
 
-    conv3 = Conv2D(n_filters * 4, 3, activation='relu', padding='same', kernel_initializer='he_normal')(mpool2)
-    conv3 = Conv2D(n_filters * 4, 3, activation='relu', padding='same', kernel_initializer='he_normal')(conv3)
+    conv3 = Conv2D(n_filters_base * 4, 3, activation='relu', padding='same', kernel_initializer='he_normal')(mpool2)
+    conv3 = Conv2D(n_filters_base * 4, 3, activation='relu', padding='same', kernel_initializer='he_normal')(conv3)
     conv3 = Dropout(0.3)(conv3)
     mpool3 = MaxPool2D()(conv3)
 
-    conv4 = Conv2D(n_filters * 8, 3, activation='relu', padding='same', kernel_initializer='he_normal')(mpool3)
-    conv4 = Conv2D(n_filters * 8, 3, activation='relu', padding='same', kernel_initializer='he_normal')(conv4)
+    conv4 = Conv2D(n_filters_base * 8, 3, activation='relu', padding='same', kernel_initializer='he_normal')(mpool3)
+    conv4 = Conv2D(n_filters_base * 8, 3, activation='relu', padding='same', kernel_initializer='he_normal')(conv4)
     conv4 = Dropout(0.4)(conv4)
     mpool4 = MaxPool2D()(conv4)
 
-    conv5 = Conv2D(n_filters * 16, 3, activation='relu', padding='same', kernel_initializer='he_normal')(mpool4)
-    conv5 = Conv2D(n_filters * 16, 3, activation='relu', padding='same', kernel_initializer='he_normal')(conv5)
+    conv5 = Conv2D(n_filters_base * 16, 3, activation='relu', padding='same', kernel_initializer='he_normal')(mpool4)
+    conv5 = Conv2D(n_filters_base * 16, 3, activation='relu', padding='same', kernel_initializer='he_normal')(conv5)
     conv5 = Dropout(0.5)(conv5)
 
-    up6 = Conv2DTranspose(n_filters * 8, 2, strides=2, kernel_initializer='he_normal', padding='same')(conv5)
+    up6 = Conv2DTranspose(n_filters_base * 8, 2, strides=2, kernel_initializer='he_normal', padding='same')(conv5)
     conv6 = Concatenate()([up6, conv4])
-    conv6 = Conv2D(n_filters * 8, 3, activation='relu', padding='same', kernel_initializer='he_normal')(conv6)
-    conv6 = Conv2D(n_filters * 8, 3, activation='relu', padding='same', kernel_initializer='he_normal')(conv6)
+    conv6 = Conv2D(n_filters_base * 8, 3, activation='relu', padding='same', kernel_initializer='he_normal')(conv6)
+    conv6 = Conv2D(n_filters_base * 8, 3, activation='relu', padding='same', kernel_initializer='he_normal')(conv6)
     conv6 = Dropout(0.4)(conv6)
 
-    up7 = Conv2DTranspose(n_filters * 4, 2, strides=2, kernel_initializer='he_normal', padding='same')(conv6)
+    up7 = Conv2DTranspose(n_filters_base * 4, 2, strides=2, kernel_initializer='he_normal', padding='same')(conv6)
     conv7 = Concatenate()([up7, conv3])
-    conv7 = Conv2D(n_filters * 4, 3, activation='relu', padding='same', kernel_initializer='he_normal')(conv7)
-    conv7 = Conv2D(n_filters * 4, 3, activation='relu', padding='same', kernel_initializer='he_normal')(conv7)
+    conv7 = Conv2D(n_filters_base * 4, 3, activation='relu', padding='same', kernel_initializer='he_normal')(conv7)
+    conv7 = Conv2D(n_filters_base * 4, 3, activation='relu', padding='same', kernel_initializer='he_normal')(conv7)
     conv7 = Dropout(0.3)(conv7)
 
-    up8 = Conv2DTranspose(n_filters * 2, 2, strides=2, kernel_initializer='he_normal', padding='same')(conv7)
+    up8 = Conv2DTranspose(n_filters_base * 2, 2, strides=2, kernel_initializer='he_normal', padding='same')(conv7)
     conv8 = Concatenate()([up8, conv2])
-    conv8 = Conv2D(n_filters * 2, 3, activation='relu', padding='same', kernel_initializer='he_normal')(conv8)
-    conv8 = Conv2D(n_filters * 2, 3, activation='relu', padding='same', kernel_initializer='he_normal')(conv8)
+    conv8 = Conv2D(n_filters_base * 2, 3, activation='relu', padding='same', kernel_initializer='he_normal')(conv8)
+    conv8 = Conv2D(n_filters_base * 2, 3, activation='relu', padding='same', kernel_initializer='he_normal')(conv8)
     conv8 = Dropout(0.2)(conv8)
 
-    up9 = Conv2DTranspose(n_filters * 1, 2, strides=2, kernel_initializer='he_normal', padding='same')(conv8)
+    up9 = Conv2DTranspose(n_filters_base * 1, 2, strides=2, kernel_initializer='he_normal', padding='same')(conv8)
     conv9 = Concatenate()([up9, conv1])
-    conv9 = Conv2D(n_filters * 1, 3, activation='relu', padding='same', kernel_initializer='he_normal')(conv9)
-    conv9 = Conv2D(n_filters * 1, 3, activation='relu', padding='same', kernel_initializer='he_normal')(conv9)
+    conv9 = Conv2D(n_filters_base * 1, 3, activation='relu', padding='same', kernel_initializer='he_normal')(conv9)
+    conv9 = Conv2D(n_filters_base * 1, 3, activation='relu', padding='same', kernel_initializer='he_normal')(conv9)
     conv9 = Dropout(0.1)(conv9)
 
     c10 = Conv2D(1, (1, 1), activation='sigmoid', kernel_initializer='he_normal', name="output_sigmoid_layer")(conv9)
@@ -441,57 +441,57 @@ def get_weighted_unet_edge(input_shape, n_filters = 4, dropout = 0.1, batchnorm 
     return model
 
 
-def get_weighted_unet_both(input_shape, n_filters = 4, dropout = 0.1, batchnorm = True, is_training=True):
+def get_weighted_unet_both(input_shape, n_filters_base = 4):
     ip = Input(input_shape, name='img')
     weight_ip = Input(shape= (input_shape[0], input_shape[1],1), name='weighted_ip')
 
-    # adding the layers
-    conv1 = Conv2D(n_filters * 1, 3, activation='relu', padding='same', kernel_initializer='he_normal')(ip)
-    conv1 = Conv2D(n_filters * 1, 3, activation='relu', padding='same', kernel_initializer='he_normal')(conv1)
+    # renamed n_filters to n_filters_base (implemented for easier tuning)
+    conv1 = Conv2D(n_filters_base * 1, 3, activation='relu', padding='same', kernel_initializer='he_normal')(ip)
+    conv1 = Conv2D(n_filters_base * 1, 3, activation='relu', padding='same', kernel_initializer='he_normal')(conv1)
     conv1 = Dropout(0.1)(conv1)
     mpool1 = MaxPool2D()(conv1)
 
-    conv2 = Conv2D(n_filters * 2, 3, activation='relu', padding='same', kernel_initializer='he_normal')(mpool1)
-    conv2 = Conv2D(n_filters * 2, 3, activation='relu', padding='same', kernel_initializer='he_normal')(conv2)
+    conv2 = Conv2D(n_filters_base * 2, 3, activation='relu', padding='same', kernel_initializer='he_normal')(mpool1)
+    conv2 = Conv2D(n_filters_base * 2, 3, activation='relu', padding='same', kernel_initializer='he_normal')(conv2)
     conv2 = Dropout(0.2)(conv2)
     mpool2 = MaxPool2D()(conv2)
 
-    conv3 = Conv2D(n_filters * 4, 3, activation='relu', padding='same', kernel_initializer='he_normal')(mpool2)
-    conv3 = Conv2D(n_filters * 4, 3, activation='relu', padding='same', kernel_initializer='he_normal')(conv3)
+    conv3 = Conv2D(n_filters_base * 4, 3, activation='relu', padding='same', kernel_initializer='he_normal')(mpool2)
+    conv3 = Conv2D(n_filters_base * 4, 3, activation='relu', padding='same', kernel_initializer='he_normal')(conv3)
     conv3 = Dropout(0.3)(conv3)
     mpool3 = MaxPool2D()(conv3)
 
-    conv4 = Conv2D(n_filters * 8, 3, activation='relu', padding='same', kernel_initializer='he_normal')(mpool3)
-    conv4 = Conv2D(n_filters * 8, 3, activation='relu', padding='same', kernel_initializer='he_normal')(conv4)
+    conv4 = Conv2D(n_filters_base * 8, 3, activation='relu', padding='same', kernel_initializer='he_normal')(mpool3)
+    conv4 = Conv2D(n_filters_base * 8, 3, activation='relu', padding='same', kernel_initializer='he_normal')(conv4)
     conv4 = Dropout(0.4)(conv4)
     mpool4 = MaxPool2D()(conv4)
 
-    conv5 = Conv2D(n_filters * 16, 3, activation='relu', padding='same', kernel_initializer='he_normal')(mpool4)
-    conv5 = Conv2D(n_filters * 16, 3, activation='relu', padding='same', kernel_initializer='he_normal')(conv5)
+    conv5 = Conv2D(n_filters_base * 16, 3, activation='relu', padding='same', kernel_initializer='he_normal')(mpool4)
+    conv5 = Conv2D(n_filters_base * 16, 3, activation='relu', padding='same', kernel_initializer='he_normal')(conv5)
     conv5 = Dropout(0.5)(conv5)
 
-    up6 = Conv2DTranspose(n_filters * 8, 2, strides=2, kernel_initializer='he_normal', padding='same')(conv5)
+    up6 = Conv2DTranspose(n_filters_base * 8, 2, strides=2, kernel_initializer='he_normal', padding='same')(conv5)
     conv6 = Concatenate()([up6, conv4])
-    conv6 = Conv2D(n_filters * 8, 3, activation='relu', padding='same', kernel_initializer='he_normal')(conv6)
-    conv6 = Conv2D(n_filters * 8, 3, activation='relu', padding='same', kernel_initializer='he_normal')(conv6)
+    conv6 = Conv2D(n_filters_base * 8, 3, activation='relu', padding='same', kernel_initializer='he_normal')(conv6)
+    conv6 = Conv2D(n_filters_base * 8, 3, activation='relu', padding='same', kernel_initializer='he_normal')(conv6)
     conv6 = Dropout(0.4)(conv6)
 
-    up7 = Conv2DTranspose(n_filters * 4, 2, strides=2, kernel_initializer='he_normal', padding='same')(conv6)
+    up7 = Conv2DTranspose(n_filters_base * 4, 2, strides=2, kernel_initializer='he_normal', padding='same')(conv6)
     conv7 = Concatenate()([up7, conv3])
-    conv7 = Conv2D(n_filters * 4, 3, activation='relu', padding='same', kernel_initializer='he_normal')(conv7)
-    conv7 = Conv2D(n_filters * 4, 3, activation='relu', padding='same', kernel_initializer='he_normal')(conv7)
+    conv7 = Conv2D(n_filters_base * 4, 3, activation='relu', padding='same', kernel_initializer='he_normal')(conv7)
+    conv7 = Conv2D(n_filters_base * 4, 3, activation='relu', padding='same', kernel_initializer='he_normal')(conv7)
     conv7 = Dropout(0.3)(conv7)
 
-    up8 = Conv2DTranspose(n_filters * 2, 2, strides=2, kernel_initializer='he_normal', padding='same')(conv7)
+    up8 = Conv2DTranspose(n_filters_base * 2, 2, strides=2, kernel_initializer='he_normal', padding='same')(conv7)
     conv8 = Concatenate()([up8, conv2])
-    conv8 = Conv2D(n_filters * 2, 3, activation='relu', padding='same', kernel_initializer='he_normal')(conv8)
-    conv8 = Conv2D(n_filters * 2, 3, activation='relu', padding='same', kernel_initializer='he_normal')(conv8)
+    conv8 = Conv2D(n_filters_base * 2, 3, activation='relu', padding='same', kernel_initializer='he_normal')(conv8)
+    conv8 = Conv2D(n_filters_base * 2, 3, activation='relu', padding='same', kernel_initializer='he_normal')(conv8)
     conv8 = Dropout(0.2)(conv8)
 
-    up9 = Conv2DTranspose(n_filters * 1, 2, strides=2, kernel_initializer='he_normal', padding='same')(conv8)
+    up9 = Conv2DTranspose(n_filters_base * 1, 2, strides=2, kernel_initializer='he_normal', padding='same')(conv8)
     conv9 = Concatenate()([up9, conv1])
-    conv9 = Conv2D(n_filters * 1, 3, activation='relu', padding='same', kernel_initializer='he_normal')(conv9)
-    conv9 = Conv2D(n_filters * 1, 3, activation='relu', padding='same', kernel_initializer='he_normal')(conv9)
+    conv9 = Conv2D(n_filters_base * 1, 3, activation='relu', padding='same', kernel_initializer='he_normal')(conv9)
+    conv9 = Conv2D(n_filters_base * 1, 3, activation='relu', padding='same', kernel_initializer='he_normal')(conv9)
     conv9 = Dropout(0.1)(conv9)
 
     c10 = Conv2D(1, (1, 1), activation='sigmoid', kernel_initializer='he_normal', name="output_sigmoid_layer")(conv9)
@@ -504,7 +504,7 @@ def get_weighted_unet_both(input_shape, n_filters = 4, dropout = 0.1, batchnorm 
     return model
 
 
-def get_weighted_unet_with_vgg_edge(input_shape, n_filters = 4, dropout = 0.1, batchnorm = True, is_training=True):
+def get_weighted_unet_with_vgg_edge(input_shape, n_filters_base = 4):
     ip = Input(input_shape, name='img')
     weight_ip = Input(shape=(input_shape[0],input_shape[1],1), name='weighted_ip')
 
@@ -512,7 +512,7 @@ def get_weighted_unet_with_vgg_edge(input_shape, n_filters = 4, dropout = 0.1, b
     z = encoder.output
     encoder_output = z
 
-    #---------------------------------
+    #--- n_filters_base not in used --> num filters not currently tune-able)
     conv5 = encoder_output
     conv4 = encoder.get_layer('block5_conv3').output
     conv3 = encoder.get_layer('block4_conv3').output
@@ -558,7 +558,7 @@ def get_weighted_unet_with_vgg_edge(input_shape, n_filters = 4, dropout = 0.1, b
     return model
 
 
-def get_weighted_unet_with_vgg_both(input_shape, n_filters = 4, dropout = 0.1, batchnorm = True, is_training=True):
+def get_weighted_unet_with_vgg_both(input_shape, n_filters_base = 4):
     ip = Input(input_shape, name='img')
     weight_ip = Input(shape=(input_shape[0],input_shape[1],1), name='weighted_ip')
 
@@ -566,7 +566,7 @@ def get_weighted_unet_with_vgg_both(input_shape, n_filters = 4, dropout = 0.1, b
     z = encoder.output
     encoder_output = z
 
-    #---------------------------------
+    #--- n_filters_base not in used --> num filters not currently tune-able)
     conv5 = encoder_output
     conv4 = encoder.get_layer('block5_conv3').output
     conv3 = encoder.get_layer('block4_conv3').output
