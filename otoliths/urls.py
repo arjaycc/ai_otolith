@@ -3,12 +3,12 @@
 # Create your tests here.
 from django.contrib import admin
 from django.urls import path
-from django.contrib.auth.views import LogoutView
+from django.contrib.auth.views import LogoutView, LoginView
 
 from . import views
 
 urlpatterns = [
-    path('', views.index),
+    path('index/', views.index),
     path('images/', views.images),
     path('detail/<int:image_id>', views.detail),
     path('map/', views.map),
@@ -28,5 +28,6 @@ urlpatterns = [
     path('dataview/<str:dataset>/<str:folder>/', views.dataview_images),
     path('detail/<str:dataset>/<str:folder>/<str:image_name>', views.data_detail),
     
-    path('logout/', LogoutView.as_view(), name="logout")
+    path('logout/', LogoutView.as_view(), name="logout"),
+    path('', LoginView.as_view(template_name='accounts/login.html', redirect_authenticated_user=True), name="login")
 ]

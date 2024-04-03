@@ -261,353 +261,238 @@ def mrcnn_mask_edge_loss_graph(y_pred, y_true):
         return edge_loss
 
 
-def get_weighted_unet_with_vgg(input_shape, n_filters_base = 4):
-    ip = Input(input_shape, name='img')
-    weight_ip = Input(shape=(input_shape[0],input_shape[1],1), name='weighted_ip')
-
-    encoder = vgg16.VGG16(input_tensor=ip, include_top=False, input_shape=input_shape)
-    z = encoder.output
-    encoder_output = z
-
-    #--- n_filters_base not in used --> num filters not currently tune-able)
-    conv5 = encoder_output
-    conv4 = encoder.get_layer('block5_conv3').output
-    conv3 = encoder.get_layer('block4_conv3').output
-    conv2 = encoder.get_layer('block3_conv3').output
-    conv1 = encoder.get_layer('block2_conv2').output
-    conv0 = encoder.get_layer('block1_conv2').output
-    
-    model_ = Conv2DTranspose(256, (3,3), strides=(2,2), kernel_initializer='he_normal', padding='same')(conv5)
-    concat1_ = Concatenate()([model_, conv4])
-    model_ = Conv2D(512, 3, activation='relu', strides=1, kernel_initializer='he_normal', padding='same')(concat1_)
-    
-    up6 = Conv2DTranspose(64, 2, strides=2, kernel_initializer='he_normal', padding='same')(model_)
-    conv6 = Concatenate()([up6, conv3])
-    conv6 = Conv2D(64, 3, activation='relu', padding='same', kernel_initializer='he_normal')(conv6)
-    conv6 = Conv2D(64, 3, activation='relu', padding='same', kernel_initializer='he_normal')(conv6)
-    conv6 = Dropout(0.4)(conv6)
-
-    up7 = Conv2DTranspose(48, 2, strides=2, kernel_initializer='he_normal', padding='same')(conv6)
-    conv7 = Concatenate()([up7, conv2])
-    conv7 = Conv2D(48, 3, activation='relu', padding='same', kernel_initializer='he_normal')(conv7)
-    conv7 = Conv2D(48, 3, activation='relu', padding='same', kernel_initializer='he_normal')(conv7)
-    conv7 = Dropout(0.3)(conv7)
-
-    up8 = Conv2DTranspose(32, 2, strides=2, kernel_initializer='he_normal', padding='same')(conv7)
-    conv8 = Concatenate()([up8, conv1])
-    conv8 = Conv2D(32, 3, activation='relu', padding='same', kernel_initializer='he_normal')(conv8)
-    conv8 = Conv2D(32, 3, activation='relu', padding='same', kernel_initializer='he_normal')(conv8)
-    conv8 = Dropout(0.2)(conv8)
-
-    #working with 16 vggfullring
-    up9 = Conv2DTranspose(16, 2, strides=2, kernel_initializer='he_normal', padding='same')(conv8)
-    conv9 = Concatenate()([up9, conv0])
-    conv9 = Conv2D(16, 3, activation='relu', padding='same', kernel_initializer='he_normal')(conv9)
-    conv9 = Conv2D(16, 3, activation='relu', padding='same', kernel_initializer='he_normal')(conv9)
-    conv9 = Dropout(0.1)(conv9)
-    
-    #--------------------
-    c10 = Conv2D(1, (1, 1), activation='sigmoid', kernel_initializer='he_normal', name="output_sigmoid_layer")(conv9)
-    targets   = Input(shape=(input_shape[0],input_shape[1],1) )
-    model = Model(inputs=[ip, weight_ip, targets], outputs=[c10])  
-    px_loss = pixel_weighted_cross_entropy(weight_ip, targets, c10)
-    model.add_loss(px_loss)
-
-    return model
-
-
-
-def get_weighted_unet(input_shape, n_filters_base = 4):
-    ip = Input(input_shape, name='img')
-    weight_ip = Input(shape= (input_shape[0], input_shape[1],1), name='weighted_ip')
-
-    # renamed n_filters to n_filters_base (implemented for easier tuning)
-    conv1 = Conv2D(n_filters_base * 1, 3, activation='relu', padding='same', kernel_initializer='he_normal')(ip)
-    conv1 = Conv2D(n_filters_base * 1, 3, activation='relu', padding='same', kernel_initializer='he_normal')(conv1)
-    conv1 = Dropout(0.1)(conv1)
-    mpool1 = MaxPool2D()(conv1)
-
-    conv2 = Conv2D(n_filters_base * 2, 3, activation='relu', padding='same', kernel_initializer='he_normal')(mpool1)
-    conv2 = Conv2D(n_filters_base * 2, 3, activation='relu', padding='same', kernel_initializer='he_normal')(conv2)
-    conv2 = Dropout(0.2)(conv2)
-    mpool2 = MaxPool2D()(conv2)
-
-    conv3 = Conv2D(n_filters_base * 4, 3, activation='relu', padding='same', kernel_initializer='he_normal')(mpool2)
-    conv3 = Conv2D(n_filters_base * 4, 3, activation='relu', padding='same', kernel_initializer='he_normal')(conv3)
-    conv3 = Dropout(0.3)(conv3)
-    mpool3 = MaxPool2D()(conv3)
-
-    conv4 = Conv2D(n_filters_base * 8, 3, activation='relu', padding='same', kernel_initializer='he_normal')(mpool3)
-    conv4 = Conv2D(n_filters_base * 8, 3, activation='relu', padding='same', kernel_initializer='he_normal')(conv4)
-    conv4 = Dropout(0.4)(conv4)
-    mpool4 = MaxPool2D()(conv4)
-
-    conv5 = Conv2D(n_filters_base * 16, 3, activation='relu', padding='same', kernel_initializer='he_normal')(mpool4)
-    conv5 = Conv2D(n_filters_base * 16, 3, activation='relu', padding='same', kernel_initializer='he_normal')(conv5)
-    conv5 = Dropout(0.5)(conv5)
-
-    up6 = Conv2DTranspose(n_filters_base * 8, 2, strides=2, kernel_initializer='he_normal', padding='same')(conv5)
-    conv6 = Concatenate()([up6, conv4])
-    conv6 = Conv2D(n_filters_base * 8, 3, activation='relu', padding='same', kernel_initializer='he_normal')(conv6)
-    conv6 = Conv2D(n_filters_base * 8, 3, activation='relu', padding='same', kernel_initializer='he_normal')(conv6)
-    conv6 = Dropout(0.4)(conv6)
-
-    up7 = Conv2DTranspose(n_filters_base * 4, 2, strides=2, kernel_initializer='he_normal', padding='same')(conv6)
-    conv7 = Concatenate()([up7, conv3])
-    conv7 = Conv2D(n_filters_base * 4, 3, activation='relu', padding='same', kernel_initializer='he_normal')(conv7)
-    conv7 = Conv2D(n_filters_base * 4, 3, activation='relu', padding='same', kernel_initializer='he_normal')(conv7)
-    conv7 = Dropout(0.3)(conv7)
-
-    up8 = Conv2DTranspose(n_filters_base * 2, 2, strides=2, kernel_initializer='he_normal', padding='same')(conv7)
-    conv8 = Concatenate()([up8, conv2])
-    conv8 = Conv2D(n_filters_base * 2, 3, activation='relu', padding='same', kernel_initializer='he_normal')(conv8)
-    conv8 = Conv2D(n_filters_base * 2, 3, activation='relu', padding='same', kernel_initializer='he_normal')(conv8)
-    conv8 = Dropout(0.2)(conv8)
-
-    up9 = Conv2DTranspose(n_filters_base * 1, 2, strides=2, kernel_initializer='he_normal', padding='same')(conv8)
-    conv9 = Concatenate()([up9, conv1])
-    conv9 = Conv2D(n_filters_base * 1, 3, activation='relu', padding='same', kernel_initializer='he_normal')(conv9)
-    conv9 = Conv2D(n_filters_base * 1, 3, activation='relu', padding='same', kernel_initializer='he_normal')(conv9)
-    conv9 = Dropout(0.1)(conv9)
-
-    c10 = Conv2D(1, (1, 1), activation='sigmoid', kernel_initializer='he_normal', name="output_sigmoid_layer")(conv9)
-
-
-    targets   = Input(shape=(input_shape[0], input_shape[1],1) )
-    model = Model(inputs=[ip, weight_ip, targets], outputs=[c10])
-    model.add_loss(pixel_weighted_cross_entropy(weight_ip, targets, c10))
-
-    return model
-
-
-
-def get_weighted_unet_edge(input_shape, n_filters_base = 4):
-    ip = Input(input_shape, name='img')
-    weight_ip = Input(shape= (input_shape[0], input_shape[1],1), name='weighted_ip')
-
-    # renamed n_filters to n_filters_base (implemented for easier tuning)
-    conv1 = Conv2D(n_filters_base * 1, 3, activation='relu', padding='same', kernel_initializer='he_normal')(ip)
-    conv1 = Conv2D(n_filters_base * 1, 3, activation='relu', padding='same', kernel_initializer='he_normal')(conv1)
-    conv1 = Dropout(0.1)(conv1)
-    mpool1 = MaxPool2D()(conv1)
-
-    conv2 = Conv2D(n_filters_base * 2, 3, activation='relu', padding='same', kernel_initializer='he_normal')(mpool1)
-    conv2 = Conv2D(n_filters_base * 2, 3, activation='relu', padding='same', kernel_initializer='he_normal')(conv2)
-    conv2 = Dropout(0.2)(conv2)
-    mpool2 = MaxPool2D()(conv2)
-
-    conv3 = Conv2D(n_filters_base * 4, 3, activation='relu', padding='same', kernel_initializer='he_normal')(mpool2)
-    conv3 = Conv2D(n_filters_base * 4, 3, activation='relu', padding='same', kernel_initializer='he_normal')(conv3)
-    conv3 = Dropout(0.3)(conv3)
-    mpool3 = MaxPool2D()(conv3)
-
-    conv4 = Conv2D(n_filters_base * 8, 3, activation='relu', padding='same', kernel_initializer='he_normal')(mpool3)
-    conv4 = Conv2D(n_filters_base * 8, 3, activation='relu', padding='same', kernel_initializer='he_normal')(conv4)
-    conv4 = Dropout(0.4)(conv4)
-    mpool4 = MaxPool2D()(conv4)
-
-    conv5 = Conv2D(n_filters_base * 16, 3, activation='relu', padding='same', kernel_initializer='he_normal')(mpool4)
-    conv5 = Conv2D(n_filters_base * 16, 3, activation='relu', padding='same', kernel_initializer='he_normal')(conv5)
-    conv5 = Dropout(0.5)(conv5)
-
-    up6 = Conv2DTranspose(n_filters_base * 8, 2, strides=2, kernel_initializer='he_normal', padding='same')(conv5)
-    conv6 = Concatenate()([up6, conv4])
-    conv6 = Conv2D(n_filters_base * 8, 3, activation='relu', padding='same', kernel_initializer='he_normal')(conv6)
-    conv6 = Conv2D(n_filters_base * 8, 3, activation='relu', padding='same', kernel_initializer='he_normal')(conv6)
-    conv6 = Dropout(0.4)(conv6)
-
-    up7 = Conv2DTranspose(n_filters_base * 4, 2, strides=2, kernel_initializer='he_normal', padding='same')(conv6)
-    conv7 = Concatenate()([up7, conv3])
-    conv7 = Conv2D(n_filters_base * 4, 3, activation='relu', padding='same', kernel_initializer='he_normal')(conv7)
-    conv7 = Conv2D(n_filters_base * 4, 3, activation='relu', padding='same', kernel_initializer='he_normal')(conv7)
-    conv7 = Dropout(0.3)(conv7)
-
-    up8 = Conv2DTranspose(n_filters_base * 2, 2, strides=2, kernel_initializer='he_normal', padding='same')(conv7)
-    conv8 = Concatenate()([up8, conv2])
-    conv8 = Conv2D(n_filters_base * 2, 3, activation='relu', padding='same', kernel_initializer='he_normal')(conv8)
-    conv8 = Conv2D(n_filters_base * 2, 3, activation='relu', padding='same', kernel_initializer='he_normal')(conv8)
-    conv8 = Dropout(0.2)(conv8)
-
-    up9 = Conv2DTranspose(n_filters_base * 1, 2, strides=2, kernel_initializer='he_normal', padding='same')(conv8)
-    conv9 = Concatenate()([up9, conv1])
-    conv9 = Conv2D(n_filters_base * 1, 3, activation='relu', padding='same', kernel_initializer='he_normal')(conv9)
-    conv9 = Conv2D(n_filters_base * 1, 3, activation='relu', padding='same', kernel_initializer='he_normal')(conv9)
-    conv9 = Dropout(0.1)(conv9)
-
-    c10 = Conv2D(1, (1, 1), activation='sigmoid', kernel_initializer='he_normal', name="output_sigmoid_layer")(conv9)
-    targets   = Input(shape=(input_shape[0], input_shape[1],1) )
-    model = Model(inputs=[ip, weight_ip, targets], outputs=[c10])
-    model.add_loss(mrcnn_mask_edge_loss_graph(c10, targets))
-    return model
-
-
-def get_weighted_unet_both(input_shape, n_filters_base = 4):
-    ip = Input(input_shape, name='img')
-    weight_ip = Input(shape= (input_shape[0], input_shape[1],1), name='weighted_ip')
-
-    # renamed n_filters to n_filters_base (implemented for easier tuning)
-    conv1 = Conv2D(n_filters_base * 1, 3, activation='relu', padding='same', kernel_initializer='he_normal')(ip)
-    conv1 = Conv2D(n_filters_base * 1, 3, activation='relu', padding='same', kernel_initializer='he_normal')(conv1)
-    conv1 = Dropout(0.1)(conv1)
-    mpool1 = MaxPool2D()(conv1)
-
-    conv2 = Conv2D(n_filters_base * 2, 3, activation='relu', padding='same', kernel_initializer='he_normal')(mpool1)
-    conv2 = Conv2D(n_filters_base * 2, 3, activation='relu', padding='same', kernel_initializer='he_normal')(conv2)
-    conv2 = Dropout(0.2)(conv2)
-    mpool2 = MaxPool2D()(conv2)
-
-    conv3 = Conv2D(n_filters_base * 4, 3, activation='relu', padding='same', kernel_initializer='he_normal')(mpool2)
-    conv3 = Conv2D(n_filters_base * 4, 3, activation='relu', padding='same', kernel_initializer='he_normal')(conv3)
-    conv3 = Dropout(0.3)(conv3)
-    mpool3 = MaxPool2D()(conv3)
-
-    conv4 = Conv2D(n_filters_base * 8, 3, activation='relu', padding='same', kernel_initializer='he_normal')(mpool3)
-    conv4 = Conv2D(n_filters_base * 8, 3, activation='relu', padding='same', kernel_initializer='he_normal')(conv4)
-    conv4 = Dropout(0.4)(conv4)
-    mpool4 = MaxPool2D()(conv4)
-
-    conv5 = Conv2D(n_filters_base * 16, 3, activation='relu', padding='same', kernel_initializer='he_normal')(mpool4)
-    conv5 = Conv2D(n_filters_base * 16, 3, activation='relu', padding='same', kernel_initializer='he_normal')(conv5)
-    conv5 = Dropout(0.5)(conv5)
-
-    up6 = Conv2DTranspose(n_filters_base * 8, 2, strides=2, kernel_initializer='he_normal', padding='same')(conv5)
-    conv6 = Concatenate()([up6, conv4])
-    conv6 = Conv2D(n_filters_base * 8, 3, activation='relu', padding='same', kernel_initializer='he_normal')(conv6)
-    conv6 = Conv2D(n_filters_base * 8, 3, activation='relu', padding='same', kernel_initializer='he_normal')(conv6)
-    conv6 = Dropout(0.4)(conv6)
-
-    up7 = Conv2DTranspose(n_filters_base * 4, 2, strides=2, kernel_initializer='he_normal', padding='same')(conv6)
-    conv7 = Concatenate()([up7, conv3])
-    conv7 = Conv2D(n_filters_base * 4, 3, activation='relu', padding='same', kernel_initializer='he_normal')(conv7)
-    conv7 = Conv2D(n_filters_base * 4, 3, activation='relu', padding='same', kernel_initializer='he_normal')(conv7)
-    conv7 = Dropout(0.3)(conv7)
-
-    up8 = Conv2DTranspose(n_filters_base * 2, 2, strides=2, kernel_initializer='he_normal', padding='same')(conv7)
-    conv8 = Concatenate()([up8, conv2])
-    conv8 = Conv2D(n_filters_base * 2, 3, activation='relu', padding='same', kernel_initializer='he_normal')(conv8)
-    conv8 = Conv2D(n_filters_base * 2, 3, activation='relu', padding='same', kernel_initializer='he_normal')(conv8)
-    conv8 = Dropout(0.2)(conv8)
-
-    up9 = Conv2DTranspose(n_filters_base * 1, 2, strides=2, kernel_initializer='he_normal', padding='same')(conv8)
-    conv9 = Concatenate()([up9, conv1])
-    conv9 = Conv2D(n_filters_base * 1, 3, activation='relu', padding='same', kernel_initializer='he_normal')(conv9)
-    conv9 = Conv2D(n_filters_base * 1, 3, activation='relu', padding='same', kernel_initializer='he_normal')(conv9)
-    conv9 = Dropout(0.1)(conv9)
-
-    c10 = Conv2D(1, (1, 1), activation='sigmoid', kernel_initializer='he_normal', name="output_sigmoid_layer")(conv9)
-
-
-    targets   = Input(shape=(input_shape[0], input_shape[1],1) )
-    model = Model(inputs=[ip, weight_ip, targets], outputs=[c10])
-    model.add_loss(mrcnn_mask_edge_loss_graph(c10, targets))
-    model.add_loss(pixel_weighted_cross_entropy(weight_ip, targets, c10))
-    return model
-
-
-def get_weighted_unet_with_vgg_edge(input_shape, n_filters_base = 4):
-    ip = Input(input_shape, name='img')
-    weight_ip = Input(shape=(input_shape[0],input_shape[1],1), name='weighted_ip')
-
-    encoder = vgg16.VGG16(input_tensor=ip, include_top=False, input_shape=input_shape)
-    z = encoder.output
-    encoder_output = z
-
-    #--- n_filters_base not in used --> num filters not currently tune-able)
-    conv5 = encoder_output
-    conv4 = encoder.get_layer('block5_conv3').output
-    conv3 = encoder.get_layer('block4_conv3').output
-    conv2 = encoder.get_layer('block3_conv3').output
-    conv1 = encoder.get_layer('block2_conv2').output
-    conv0 = encoder.get_layer('block1_conv2').output
-    
-    model_ = Conv2DTranspose(256, (3,3), strides=(2,2), kernel_initializer='he_normal', padding='same')(conv5)
-    concat1_ = Concatenate()([model_, conv4])
-    model_ = Conv2D(512, 3, activation='relu', strides=1, kernel_initializer='he_normal', padding='same')(concat1_)
-
-    up6 = Conv2DTranspose(64, 2, strides=2, kernel_initializer='he_normal', padding='same')(model_)
-    conv6 = Concatenate()([up6, conv3])
-    conv6 = Conv2D(64, 3, activation='relu', padding='same', kernel_initializer='he_normal')(conv6)
-    conv6 = Conv2D(64, 3, activation='relu', padding='same', kernel_initializer='he_normal')(conv6)
-    conv6 = Dropout(0.4)(conv6)
-
-    up7 = Conv2DTranspose(48, 2, strides=2, kernel_initializer='he_normal', padding='same')(conv6)
-    conv7 = Concatenate()([up7, conv2])
-    conv7 = Conv2D(48, 3, activation='relu', padding='same', kernel_initializer='he_normal')(conv7)
-    conv7 = Conv2D(48, 3, activation='relu', padding='same', kernel_initializer='he_normal')(conv7)
-    conv7 = Dropout(0.3)(conv7)
-
-    up8 = Conv2DTranspose(32, 2, strides=2, kernel_initializer='he_normal', padding='same')(conv7)
-    conv8 = Concatenate()([up8, conv1])
-    conv8 = Conv2D(32, 3, activation='relu', padding='same', kernel_initializer='he_normal')(conv8)
-    conv8 = Conv2D(32, 3, activation='relu', padding='same', kernel_initializer='he_normal')(conv8)
-    conv8 = Dropout(0.2)(conv8)
-
-    #working with 16 vggfullring
-    up9 = Conv2DTranspose(16, 2, strides=2, kernel_initializer='he_normal', padding='same')(conv8)
-    conv9 = Concatenate()([up9, conv0])
-    conv9 = Conv2D(16, 3, activation='relu', padding='same', kernel_initializer='he_normal')(conv9)
-    conv9 = Conv2D(16, 3, activation='relu', padding='same', kernel_initializer='he_normal')(conv9)
-    conv9 = Dropout(0.1)(conv9)
-    
-    #--------------------
-    c10 = Conv2D(1, (1, 1), activation='sigmoid', kernel_initializer='he_normal', name="output_sigmoid_layer")(conv9)
-    targets   = Input(shape=(input_shape[0],input_shape[1],1) )
-    model = Model(inputs=[ip, weight_ip, targets], outputs=[c10])
-    model.add_loss(mrcnn_mask_edge_loss_graph(c10, targets))
-
-    return model
-
-
-def get_weighted_unet_with_vgg_both(input_shape, n_filters_base = 4):
-    ip = Input(input_shape, name='img')
-    weight_ip = Input(shape=(input_shape[0],input_shape[1],1), name='weighted_ip')
-
-    encoder = vgg16.VGG16(input_tensor=ip, include_top=False, input_shape=input_shape)
-    z = encoder.output
-    encoder_output = z
-
-    #--- n_filters_base not in used --> num filters not currently tune-able)
-    conv5 = encoder_output
-    conv4 = encoder.get_layer('block5_conv3').output
-    conv3 = encoder.get_layer('block4_conv3').output
-    conv2 = encoder.get_layer('block3_conv3').output
-    conv1 = encoder.get_layer('block2_conv2').output
-    conv0 = encoder.get_layer('block1_conv2').output
-    
-    model_ = Conv2DTranspose(256, (3,3), strides=(2,2), kernel_initializer='he_normal', padding='same')(conv5)
-    concat1_ = Concatenate()([model_, conv4])
-    model_ = Conv2D(512, 3, activation='relu', strides=1, kernel_initializer='he_normal', padding='same')(concat1_)
-    
-    up6 = Conv2DTranspose(64, 2, strides=2, kernel_initializer='he_normal', padding='same')(model_)
-    conv6 = Concatenate()([up6, conv3])
-    conv6 = Conv2D(64, 3, activation='relu', padding='same', kernel_initializer='he_normal')(conv6)
-    conv6 = Conv2D(64, 3, activation='relu', padding='same', kernel_initializer='he_normal')(conv6)
-    conv6 = Dropout(0.4)(conv6)
-
-    up7 = Conv2DTranspose(48, 2, strides=2, kernel_initializer='he_normal', padding='same')(conv6)
-    conv7 = Concatenate()([up7, conv2])
-    conv7 = Conv2D(48, 3, activation='relu', padding='same', kernel_initializer='he_normal')(conv7)
-    conv7 = Conv2D(48, 3, activation='relu', padding='same', kernel_initializer='he_normal')(conv7)
-    conv7 = Dropout(0.3)(conv7)
-
-    up8 = Conv2DTranspose(32, 2, strides=2, kernel_initializer='he_normal', padding='same')(conv7)
-    conv8 = Concatenate()([up8, conv1])
-    conv8 = Conv2D(32, 3, activation='relu', padding='same', kernel_initializer='he_normal')(conv8)
-    conv8 = Conv2D(32, 3, activation='relu', padding='same', kernel_initializer='he_normal')(conv8)
-    conv8 = Dropout(0.2)(conv8)
-
-    #working with 16 vggfullring
-    up9 = Conv2DTranspose(16, 2, strides=2, kernel_initializer='he_normal', padding='same')(conv8)
-    conv9 = Concatenate()([up9, conv0])
-    conv9 = Conv2D(16, 3, activation='relu', padding='same', kernel_initializer='he_normal')(conv9)
-    conv9 = Conv2D(16, 3, activation='relu', padding='same', kernel_initializer='he_normal')(conv9)
-    conv9 = Dropout(0.1)(conv9)
-    
-    #--------------------
-    c10 = Conv2D(1, (1, 1), activation='sigmoid', kernel_initializer='he_normal', name="output_sigmoid_layer")(conv9)
-    targets   = Input(shape=(input_shape[0],input_shape[1],1) )
-    model = Model(inputs=[ip, weight_ip, targets], outputs=[c10])
-    model.add_loss(mrcnn_mask_edge_loss_graph(c10, targets))
-    model.add_loss(pixel_weighted_cross_entropy(weight_ip, targets, c10))
-
-    return model
+
+class UNetModel:
+
+
+    def __init__(self, mode='training'): # or inference
+        self.mode = mode
+        self.model = None
+
+    def get_unet_config(self, settings, data_params, unet_params): 
+        if 'base' in settings:
+            #pass # new experiments
+            try:
+                LOSS_FUNCTION = unet_params['loss_function']
+            except:
+                LOSS_FUNCTION = 'weighted'
+
+            if settings['base'] == 'none':
+                TRANSFER = False
+                CHANNELS = 1
+                pass
+            elif settings['base'] == 'vgg':
+                TRANSFER = True
+                CHANNELS = 3
+                pass
+            elif settings['base'] == 'north':
+                TRANSFER = True
+                CHANNELS = 3
+                pass
+            elif settings['base'] == 'baltic':
+                TRANSFER = False
+                CHANNELS = 1
+                pass
+            else:
+                pass
+
+        else:
+            try:
+                CHANNELS = data_params['channels']
+            except:
+                CHANNELS = 1
+            try:
+                TRANSFER = data_params['transfer']
+            except:
+                TRANSFER = False
+
+            try:
+                LOSS_FUNCTION = unet_params['loss_function']
+            except:
+                LOSS_FUNCTION = 'weighted'
+
+        return LOSS_FUNCTION, TRANSFER, CHANNELS
+
+    def get_unet(self, settings, data_params, unet_params):
+        self.settings = settings
+        LOSS_FUNCTION, TRANSFER, CHANNELS = self.get_unet_config(settings, data_params, unet_params)
+        input_shape = (512, 512, CHANNELS)
+
+        # adam = optimizers.Adam(lr=0.0004, decay=0.0)
+        if TRANSFER:
+            if LOSS_FUNCTION == 'edge':
+                model = self.get_weighted_unet(input_shape, n_filters_base=4, with_vgg=True, loss_type='edge')
+            elif LOSS_FUNCTION == 'weighted':
+                model = self.get_weighted_unet(input_shape, n_filters_base=4, with_vgg=True, loss_type='default')
+            else:
+                model = self.get_weighted_unet(input_shape, n_filters_base=4, with_vgg=True, loss_type='both')
+        else:
+            if LOSS_FUNCTION == 'edge':
+                model = self.get_weighted_unet(input_shape, n_filters_base=4, with_vgg=False, loss_type='edge')
+            elif LOSS_FUNCTION == 'weighted':
+                model = self.get_weighted_unet(input_shape, n_filters_base=4, with_vgg=False, loss_type='default')
+            else:
+                model = self.get_weighted_unet(input_shape, n_filters_base=4, with_vgg=False, loss_type='both')
+
+        self.input_shape = input_shape
+        self.model = model
+        return model
+
+
+    def get_weighted_unet(self, input_shape, n_filters_base = 4, with_vgg=False, loss_type='default'):
+        ip = Input(input_shape, name='img')
+        weight_ip = Input(shape=(input_shape[0],input_shape[1],1), name='weighted_ip')
+
+        if with_vgg:
+            encoder = vgg16.VGG16(input_tensor=ip, include_top=False, input_shape=input_shape)
+            encoder_output = encoder.output
+
+            #--- n_filters_base not in used --> num filters not currently tune-able)
+            conv5_mid = encoder.get_layer('block5_conv3').output
+            conv4 = encoder.get_layer('block4_conv3').output
+            conv3 = encoder.get_layer('block3_conv3').output
+            conv2 = encoder.get_layer('block2_conv2').output
+            conv1 = encoder.get_layer('block1_conv2').output
+            
+            model_mid = Conv2DTranspose(n_filters_base * 64, (3,3), strides=(2,2), kernel_initializer='he_normal', padding='same')(encoder_output)
+            concat_mid = Concatenate()([model_mid, conv5_mid])
+            conv5 = Conv2D(n_filters_base * 128, 3, activation='relu', strides=1, kernel_initializer='he_normal', padding='same')(concat_mid)
+
+            up6 = Conv2DTranspose(n_filters_base * 16, 2, strides=2, kernel_initializer='he_normal', padding='same')(conv5)
+            conv6 = Concatenate()([up6, conv4])
+            conv6 = Conv2D(n_filters_base * 16, 3, activation='relu', padding='same', kernel_initializer='he_normal')(conv6)
+            conv6 = Conv2D(n_filters_base * 16, 3, activation='relu', padding='same', kernel_initializer='he_normal')(conv6)
+            conv6 = Dropout(0.4)(conv6)
+
+            up7 = Conv2DTranspose(n_filters_base * 12, 2, strides=2, kernel_initializer='he_normal', padding='same')(conv6)
+            conv7 = Concatenate()([up7, conv3])
+            conv7 = Conv2D(n_filters_base * 12, 3, activation='relu', padding='same', kernel_initializer='he_normal')(conv7)
+            conv7 = Conv2D(n_filters_base * 12, 3, activation='relu', padding='same', kernel_initializer='he_normal')(conv7)
+            conv7 = Dropout(0.3)(conv7)
+
+            up8 = Conv2DTranspose(n_filters_base * 8, 2, strides=2, kernel_initializer='he_normal', padding='same')(conv7)
+            conv8 = Concatenate()([up8, conv2])
+            conv8 = Conv2D(n_filters_base * 8, 3, activation='relu', padding='same', kernel_initializer='he_normal')(conv8)
+            conv8 = Conv2D(n_filters_base * 8, 3, activation='relu', padding='same', kernel_initializer='he_normal')(conv8)
+            conv8 = Dropout(0.2)(conv8)
+
+            up9 = Conv2DTranspose(n_filters_base * 4, 2, strides=2, kernel_initializer='he_normal', padding='same')(conv8)
+            conv9 = Concatenate()([up9, conv1])
+            conv9 = Conv2D(n_filters_base * 4, 3, activation='relu', padding='same', kernel_initializer='he_normal')(conv9)
+            conv9 = Conv2D(n_filters_base * 4, 3, activation='relu', padding='same', kernel_initializer='he_normal')(conv9)
+            conv9 = Dropout(0.1)(conv9)
+        else:
+            # renamed n_filters to n_filters_base (implemented for easier tuning)
+            conv1 = Conv2D(n_filters_base * 1, 3, activation='relu', padding='same', kernel_initializer='he_normal')(ip)
+            conv1 = Conv2D(n_filters_base * 1, 3, activation='relu', padding='same', kernel_initializer='he_normal')(conv1)
+            conv1 = Dropout(0.1)(conv1)
+            mpool1 = MaxPool2D()(conv1)
+
+            conv2 = Conv2D(n_filters_base * 2, 3, activation='relu', padding='same', kernel_initializer='he_normal')(mpool1)
+            conv2 = Conv2D(n_filters_base * 2, 3, activation='relu', padding='same', kernel_initializer='he_normal')(conv2)
+            conv2 = Dropout(0.2)(conv2)
+            mpool2 = MaxPool2D()(conv2)
+
+            conv3 = Conv2D(n_filters_base * 4, 3, activation='relu', padding='same', kernel_initializer='he_normal')(mpool2)
+            conv3 = Conv2D(n_filters_base * 4, 3, activation='relu', padding='same', kernel_initializer='he_normal')(conv3)
+            conv3 = Dropout(0.3)(conv3)
+            mpool3 = MaxPool2D()(conv3)
+
+            conv4 = Conv2D(n_filters_base * 8, 3, activation='relu', padding='same', kernel_initializer='he_normal')(mpool3)
+            conv4 = Conv2D(n_filters_base * 8, 3, activation='relu', padding='same', kernel_initializer='he_normal')(conv4)
+            conv4 = Dropout(0.4)(conv4)
+            mpool4 = MaxPool2D()(conv4)
+
+            conv5 = Conv2D(n_filters_base * 16, 3, activation='relu', padding='same', kernel_initializer='he_normal')(mpool4)
+            conv5 = Conv2D(n_filters_base * 16, 3, activation='relu', padding='same', kernel_initializer='he_normal')(conv5)
+            conv5 = Dropout(0.5)(conv5)
+                
+            up6 = Conv2DTranspose(n_filters_base * 8, 2, strides=2, kernel_initializer='he_normal', padding='same')(conv5)
+            conv6 = Concatenate()([up6, conv4])
+            conv6 = Conv2D(n_filters_base * 8, 3, activation='relu', padding='same', kernel_initializer='he_normal')(conv6)
+            conv6 = Conv2D(n_filters_base * 8, 3, activation='relu', padding='same', kernel_initializer='he_normal')(conv6)
+            conv6 = Dropout(0.4)(conv6)
+
+            up7 = Conv2DTranspose(n_filters_base * 4, 2, strides=2, kernel_initializer='he_normal', padding='same')(conv6)
+            conv7 = Concatenate()([up7, conv3])
+            conv7 = Conv2D(n_filters_base * 4, 3, activation='relu', padding='same', kernel_initializer='he_normal')(conv7)
+            conv7 = Conv2D(n_filters_base * 4, 3, activation='relu', padding='same', kernel_initializer='he_normal')(conv7)
+            conv7 = Dropout(0.3)(conv7)
+
+            up8 = Conv2DTranspose(n_filters_base * 2, 2, strides=2, kernel_initializer='he_normal', padding='same')(conv7)
+            conv8 = Concatenate()([up8, conv2])
+            conv8 = Conv2D(n_filters_base * 2, 3, activation='relu', padding='same', kernel_initializer='he_normal')(conv8)
+            conv8 = Conv2D(n_filters_base * 2, 3, activation='relu', padding='same', kernel_initializer='he_normal')(conv8)
+            conv8 = Dropout(0.2)(conv8)
+
+            #working with 16 vggfullring
+            up9 = Conv2DTranspose(n_filters_base * 1, 2, strides=2, kernel_initializer='he_normal', padding='same')(conv8)
+            conv9 = Concatenate()([up9, conv1])
+            conv9 = Conv2D(n_filters_base * 1, 3, activation='relu', padding='same', kernel_initializer='he_normal')(conv9)
+            conv9 = Conv2D(n_filters_base * 1, 3, activation='relu', padding='same', kernel_initializer='he_normal')(conv9)
+            conv9 = Dropout(0.1)(conv9)
+        
+        #--------------------
+        c10 = Conv2D(1, (1, 1), activation='sigmoid', kernel_initializer='he_normal', name="output_sigmoid_layer")(conv9)
+        targets   = Input(shape=(input_shape[0],input_shape[1],1) )
+        model = Model(inputs=[ip, weight_ip, targets], outputs=[c10])  
+
+        if loss_type == 'default':
+            model.add_loss(pixel_weighted_cross_entropy(weight_ip, targets, c10))
+        elif loss_type == 'edge':
+            model.add_loss(mrcnn_mask_edge_loss_graph(c10, targets))
+        elif loss_type == 'both':
+            model.add_loss(pixel_weighted_cross_entropy(weight_ip, targets, c10))
+            model.add_loss(mrcnn_mask_edge_loss_graph(c10, targets))
+
+        return model
+
+
+    def load(self, weight_dir, settings, data_params, unet_params):
+        LOSS_FUNCTION, TRANSFER, CHANNELS = self.get_unet_config(settings, data_params, unet_params)
+        self.model = load_model(weight_dir, compile=False)
+        return LOSS_FUNCTION, TRANSFER, CHANNELS
+
+
+    def compile(self, optimizer, metrics):
+        settings = self.settings
+        if 'base' in settings:
+            if settings['base'] == 'none':
+                # handled by TRANSFER=false
+                preload_name = 'placeholder_none'
+            elif settings['base'] == 'vgg':
+                # handled by TRANSFER=true
+                preload_name = 'placeholder_vgg'
+            elif settings['base'] == 'north':
+                if settings['continual'] == 0:
+                    preload_name = "unet_randsub{}run1_47".format(settings['base_id']) 
+                    self.model.load_weights("{}/{}/{}_checkpoint.h5".format(settings['dataset'], preload_name, preload_name))
+                else:
+                    if settings['idr'] > 0:
+                        prev_id = settings['idr'] - 1
+                        preload_name = "unet_{}{}run1_37".format(settings['run_label'], prev_id) 
+                        COCO_MODEL_PATH = '{}/{}/{}_checkpoint.h5'.format(settings['dataset'], preload_name, preload_name)
+                    else:
+                        preload_name = "unet_randsub{}run1_47".format(settings['base_id'])
+                        self.model.load_weights("{}/{}/{}_checkpoint.h5".format(settings['dataset'], preload_name, preload_name))
+
+            elif settings['base'] == 'baltic':
+                preload_name = "unet_randfold{}run1_37".format(settings['base_id'])
+                self.model.load_weights("{}/{}/{}_checkpoint.h5".format(settings['dataset'], preload_name, preload_name))
+            else:
+                raise ValueError('not supported')
+        #for layer in self.model.layers:
+        #    layer.trainable = True
+        self.model.compile(optimizer=optimizer, metrics=metrics)
+        self.model.summary()
+
+
+    def fit(self, train_data, val_data, val_steps=1, steps_per_epoch=50, epochs=10, verbose=1, callbacks=[]):
+        self.model.fit_generator(train_data, validation_data=val_data, validation_steps=val_steps, steps_per_epoch=steps_per_epoch, epochs=epochs, verbose=verbose, callbacks=callbacks)
+
+
+    def save(self, output_dir):
+        self.model.save(output_dir)
+        
+
+

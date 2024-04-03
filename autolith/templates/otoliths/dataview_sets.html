@@ -11,7 +11,7 @@
 
 
 <div>
-<form action='/ai/' method='GET'>
+<form action='.' method='GET'>
     <select name="aimethod"> Select AI method:
         <option style="width: 50px;">Mask-RCNN</option>
         <option style="width: 50px;">U-Net</option>
@@ -59,16 +59,16 @@
                 1
             </td>
             <td>
-                <a href="{{ folder }}"><h3>Dataset: {{ folder }}</h3></a>
+                <a href="."><h3>Dataset: {{ folder }}</h3></a>
             </td>
             <td>
                 True
             </td>
             <td>
-                <form action="{{ folder }}/unet/"><input type="submit"  value="Train U-Net">  </form>
+                <form action="."><input type="submit"  value="Train U-Net">  </form>
             </td>
             <td>
-                <form action="{{ folder }}/train_mrcnn/"><input type="submit" value="Train Mask R-CNN"></form> 
+                <form action="."><input type="submit" value="Train Mask R-CNN"></form> 
             </td>
          </tr>
 {% endfor %}

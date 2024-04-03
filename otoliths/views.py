@@ -2,6 +2,7 @@ from django.shortcuts import render
 from django.http import HttpResponse
 from django.core.paginator import Paginator
 from django.views.decorators.csrf import csrf_exempt
+from django.contrib.auth.decorators import login_required
 from .forms import UploadForm
 from .models import OtolithImage, Image
 
@@ -48,10 +49,11 @@ from .experiments_mrcnn import *
 from .experiments_unet import *
 from .views_utils import *
 
+@login_required
 def index(request):
     return render(request, 'otoliths/index.html')
 
-
+@login_required
 def images(request):
     qs = OtolithImage.objects.all()
     try:
@@ -91,7 +93,7 @@ def map(request):
             print(img_data)
     return render(request, 'otoliths/map.html')
 
-
+@login_required
 def researchers(request):
     northsea_files = glob.glob("core/static/*detail_no_mask.png")
     if len(northsea_files) > 0:
@@ -112,23 +114,23 @@ def researchers(request):
 
     return render(request, 'otoliths/researchers.html', {'pass_var': json_var})
 
-
+@login_required
 def ai(request):
     images = []
     return render(request, 'otoliths/aimethod.html', {'images': images } )
 
-
+@login_required
 def upload(request):
     form = UploadForm()
     return render(request, 'otoliths/upload.html', {'form': form})
 
-
+@login_required
 def analysis(request):
     image1 = 'result1.png'
     image2 = 'result2.png'
     return render(request, 'otoliths/analysis.html', {'image1': image1, 'image2': image2})
 
-
+@login_required
 def detail(request, image_id):
     img_obj = OtolithImage.objects.get(pk=image_id)
     with open('core/static/{}'.format(img_obj.data_path), 'rb') as fin:
@@ -210,15 +212,15 @@ def detail(request, image_id):
     cv2.imwrite('core/static/{}_detail.png'.format(image_id), img_new)
     return render(request, 'otoliths/detail.html', {'image_id': image_id, 'group': img_obj.fish_group})
 
-
+@login_required
 def visualize(request):
     img_name = "test.jpg"
     convert_to_gray("core/static/visualize/{}".format(img_name), 'core/static/visualize/result.png')
     return render(request, 'otoliths/visualization.html', {'image_name': img_name})
 
-
+@login_required
 def northsea(request):
-    img_files = glob.glob('autolith/static/data/northsea/train/*.png')
+    img_files = glob.glob('staticfiles/data/northsea/train/*.png')
     print(img_files)
     all_images = []
     count = 0
@@ -230,9 +232,9 @@ def northsea(request):
             break
     return render(request, 'otoliths/northsea.html', {'images': all_images})
 
-
+@login_required
 def balticsea(request):
-    img_files = glob.glob('autolith/static/data/baltic/train/*.png')
+    img_files = glob.glob('staticfiles/data/baltic/train/*.png')
     print(img_files)
     all_images = []
     count = 0
@@ -244,17 +246,17 @@ def balticsea(request):
             break
     return render(request, 'otoliths/baltic.html', {'images': all_images})
 
-
+@login_required
 def data_detail(request, image_name):
     print(image_name)
     image_id = image_name
     return render(request, 'otoliths/data_detail.html', {'image_name': image_name})
 
-
+@login_required
 def experiments(request):
     return render(request, 'otoliths/experiments.html')
 
-
+@login_required
 def experiments_unet(request):
     settings = {
         'dataset' : 'datasets_north',
@@ -275,7 +277,7 @@ def experiments_unet(request):
     return render(request, 'otoliths/experiments.html')
 
 
-@csrf_exempt
+@login_required
 def interact(request):
     request = json.loads(request.body.decode('utf-8'))
     print(request['_via_image_id_list'])
@@ -285,6 +287,7 @@ def interact(request):
         
     return HttpResponse("success")
 
+@login_required
 def dataview_sets(request, dataset):
     img_files = glob.glob('autolith/static/data/{}/*/*.png'.format(dataset))
     img_files.extend(glob.glob('autolith/static/data/{}/*/*.jpg'.format(dataset)))
@@ -296,6 +299,7 @@ def dataview_sets(request, dataset):
     all_folders = list(set(all_folders))
     return render(request, 'otoliths/dataview_sets.html', {'folders': all_folders})
 
+@login_required
 def dataview_images(request, dataset, folder):
     img_files = glob.glob('autolith/static/data/{}/{}/*.png'.format(dataset, folder) )
     img_files.extend(glob.glob('autolith/static/data/{}/{}/*.jpg'.format(dataset, folder)))
@@ -310,7 +314,7 @@ def dataview_images(request, dataset, folder):
             break
     return render(request, 'otoliths/dataview_images.html', {'dataset': dataset, 'folder': folder, 'images': all_images})
 
-@csrf_exempt
+@login_required
 def data_detail(request, dataset, folder, image_name):
     import skimage.io
     from mrcnn.utils import resize_image

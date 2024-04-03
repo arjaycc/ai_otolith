@@ -1000,7 +1000,7 @@ POSSIBILITY OF SUCH DAMAGE.
 */
 
 "use strict";
-
+var csrftoken = '{{ csrf_token }}';
 var VIA_VERSION      = '2.0.10';
 var VIA_NAME         = 'VGG Image Annotator';
 var VIA_SHORT_NAME   = 'VIA';
@@ -1409,6 +1409,7 @@ function download_as_image() {
 
   var xhttp = new XMLHttpRequest();
   xhttp.open("POST", "/interact/", true);
+  xhttp.setRequestHeader("X-CSRFToken", csrftoken); 
   xhttp.setRequestHeader('Content-Type', 'application/json');
   // xhttp.send(JSON.stringify(
   //     {test: 1}

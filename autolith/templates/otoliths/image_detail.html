@@ -1,5 +1,5 @@
 {% extends "base.html" %}
-
+{% load static %}
 {% block title %} <a href="/otoliths/images/"><< Back << </a> {% endblock %} 
 
 <!-- Specific Page CSS goes HERE  -->
@@ -24,7 +24,7 @@
 <a href="?process=Combined">Combined</a>
  
 <div class="img-wrapper" style="display: inline-block; width: 800px; margin: 2px;">
-    <img style="width: 800px; height: 800px; margin: 5px;" src="/static/detail/{{ image_name }}">
+    <img style="width: 800px; height: 800px; margin: 5px;" src="{% static 'detail/'|add:image_name %}">
 </div>
 
 

@@ -1,0 +1,21 @@
+{
+    "namesize": {
+        "filename": "name",
+        "size": "size",
+        "file_attributes": {},
+        "regions": [
+            {
+                "shape_attributes": {
+                    "name": "polyline",
+                    "all_points_x": [
+
+                    ],
+                    "all_points_y": [
+
+                    ]
+                },
+                "region_attributes": {}
+            }
+        ]
+    }
+}

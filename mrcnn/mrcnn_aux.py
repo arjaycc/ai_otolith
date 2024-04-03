@@ -316,11 +316,78 @@ class InferenceDataset(utils.Dataset):
         exclude_train = {}
         if exclude is not None:
             exclude_train = {}
-            training = glob.glob("{}/{}/*.png".format(settings['dataset'], exclude))
-            for item in training:
-                strs = item.replace("\\", "/").split("/")
-                exclude_train[strs[-1]] = 1
-        
+            if 'base' in settings:
+                if settings['eval_balanced_set']:
+                    if settings['dataset'] == 'datasets_north':
+                        old_set = 'train_randsub_{}'.format(settings['base_id'])
+                    else:
+                        old_set = "train_fold_{}".format(settings['base_id'])
+                    include_set = {}
+                    include_files = glob.glob("{}/{}/*.png".format(settings['dataset'], old_set))
+                    for item in include_files:
+                        strs = item.replace("\\", "/").split("/")
+                        include_set[strs[-1]] = 1
+                      
+                    all_files = glob.glob("{}/{}/*.png".format(settings['dataset'], "images"))
+                    for item in all_files:
+                        strs = item.replace("\\", "/").split("/")
+                        if 'source_dataset' in settings:
+                            if strs[-1] in include_set: ###### OG is "not in"
+                                exclude_train[strs[-1]] = 1
+                        else: 
+                            if strs[-1] not in include_set: ###### OG is "not in"
+                                exclude_train[strs[-1]] = 1 
+                else:
+                    if settings['continual'] == 0: 
+                        if settings['dataset'] == 'datasets_north':
+                            old_set = 'train_randsub_{}'.format(settings['base_id'])
+                        else:
+                            old_set = "train_fold_{}".format(settings['base_id'])
+
+                        old_set_files = glob.glob("{}/{}/*.png".format(settings['dataset'], old_set))
+                        for item in old_set_files:
+                            strs = item.replace("\\", "/").split("/")
+                            exclude_train[strs[-1]] = 1
+                        training_files = glob.glob("{}/{}/*.png".format(settings['dataset'], exclude))
+                        for item in training_files:
+                            strs = item.replace("\\", "/").split("/")
+                            exclude_train[strs[-1]] = 1
+                    elif settings['continual'] == 1:
+                        if settings['idr'] < 5:
+                            old_set = "train_fold_{}".format(settings['base_id'])
+                            old_set_files = glob.glob("{}/{}/*.png".format(settings['dataset'], old_set))
+                            for item in old_set_files:
+                                strs = item.replace("\\", "/").split("/")
+                                exclude_train[strs[-1]] = 1
+                            forward_idr = settings['idr'] + 1
+                            for i in range(6):
+                                if i != forward_idr:
+                                    forward_set = "train_{}_{}".format(settings['split_name'], i)
+                                    forward_files = glob.glob("{}/{}/*.png".format(settings['dataset'], forward_set))
+                                    for item in forward_files:
+                                        strs = item.replace("\\", "/").split("/")
+                                        exclude_train[strs[-1]] = 1
+                        else:
+                            old_set = "train_fold_{}".format(settings['base_id'])
+                            include_set = {}
+                            include_files = glob.glob("{}/{}/*.png".format(settings['dataset'], old_set))
+                            for item in include_files:
+                                strs = item.replace("\\", "/").split("/")
+                                include_set[strs[-1]] = 1
+                            all_files = glob.glob("{}/{}/*.png".format(settings['dataset'], "images"))
+                            for item in all_files:
+                                strs = item.replace("\\", "/").split("/")
+                                if strs[-1] not in include_set:
+                                    exclude_train[strs[-1]] = 1   
+                    else:
+                        raise ValueError("not supported")
+            else:    
+                exclude_train = {}
+                training_files = glob.glob("{}/{}/*.png".format(settings['dataset'], exclude))
+                for item in training_files:
+                    strs = item.replace("\\", "/").split("/")
+                    exclude_train[strs[-1]] = 1
+                
         target = None
         if 'target_species' in settings:
             target = settings['target_species']

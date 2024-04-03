@@ -1,5 +1,5 @@
 {% extends "base.html" %}
-
+{% load static %}
 {% block title %} <h2>Section: View Data</h2> {% endblock %} 
 
 <!-- Specific Page CSS goes HERE  -->
@@ -10,7 +10,7 @@
 
 
 <div>
-<form action='/otoliths/detail/{{ dataset }}/{{ folder }}/{{ image }}' method='GET'>
+<form action='.' method='GET'>
     <select name="aimethod"> Select AI method:
         <option style="width: 50px;">Mask-RCNN</option>
         <option style="width: 50px;">U-Net</option>
@@ -33,7 +33,7 @@
 <ul>
 {% for image in images %}
     <li style="display: inline-block; margin: 5px;">
-        <a href="/otoliths/detail/{{ dataset }}/{{ folder }}/{{ image }}"><img style="width: 200px; height: 200px; margin: 5px;" src="/static/data/{{ dataset }}/{{ folder }}/{{ image }}"></a>
+        <a href="."><img style="width: 200px; height: 200px; margin: 5px;" src="{% static 'data/'|add:dataset|add:'/'|add:folder|add:'/'|add:image %}"></a>
     </li>
 
 {% endfor %}

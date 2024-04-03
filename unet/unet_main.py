@@ -73,14 +73,13 @@ def train(name='unet', data_params={}, unet_params={}, train_params={}, settings
     random.seed(101)
     
     idr = settings['idr']
-    try:
-        CHANNELS = data_params['channels']
-    except:
-        CHANNELS = 1
-    try:
-        NORMALIZE = data_params['normalize']
-    except:
-        NORMALIZE = True
+    HYPERPARAMS_EXPERIMENT = False
+    if idr == 999:
+        HYPERPARAMS_EXPERIMENT = True
+    #try:
+    #    NORMALIZE = data_params['normalize']
+    #except:
+    #    NORMALIZE = True
 
     try:
         AUGMENT = data_params['augment']
@@ -88,55 +87,48 @@ def train(name='unet', data_params={}, unet_params={}, train_params={}, settings
         AUGMENT = True
 
     try:
-        TRANSFER = data_params['transfer']
-    except:
-        TRANSFER = False
-
-    try:
         FULL_RING = train_params['full_ring']
     except:
         FULL_RING = False
 
-    try:
-        LOSS_FUNCTION = unet_params['loss_function']
-    except:
-        LOSS_FUNCTION = 'weighted'
 
-    if FULL_RING:
+    unet_model = modellib.UNetModel(mode="training")
+    unet_model.get_unet(settings, data_params, unet_params)
+    (_x, _y,CHANNELS) = unet_model.input_shape
+    
+    if HYPERPARAMS_EXPERIMENT:
+        if FULL_RING:
 
-        dataset = OtolithDataset()
-        dataset.load_otolith_data('{}/train_paramfull_999/'.format(settings['dataset']), settings=settings)
-        dataset.prepare()
+            dataset = OtolithDataset()
+            dataset.load_otolith_data('{}/train_paramfull_999/'.format(settings['dataset']), settings=settings)
+            dataset.prepare()
 
-        val = OtolithDataset(mode="flip")
-        val.load_otolith_data('{}/valid_paramfull_999/'.format(settings['dataset']), settings=settings )
-        val.prepare()
+            val = OtolithDataset(mode="flip")
+            val.load_otolith_data('{}/valid_paramfull_999/'.format(settings['dataset']), settings=settings )
+            val.prepare()
+        else:
+            dataset = OtolithDataset()
+            dataset.load_otolith_data('{}/train_param_999/'.format(settings['dataset']), settings=settings )
+            dataset.prepare()
+
+            val = OtolithDataset(mode="flip")
+            val.load_otolith_data('{}/valid_param_999/'.format(settings['dataset']), settings=settings)
+            val.prepare()
     else:
         dataset = OtolithDataset()
-        if idr == 999:
-            dataset.load_otolith_data('{}/train_param_999/'.format(settings['dataset']), settings=settings )
-        else:
-            dataset.load_otolith_data('{}/train_{}_{}/'.format(settings['dataset'], settings['split_name'] , idr), settings=settings)
+        dataset.load_otolith_data('{}/train_{}_{}/'.format(settings['dataset'], 
+                                settings['split_name'] , idr), settings=settings)
         dataset.prepare()
 
         val = OtolithDataset(mode="flip")
-        if idr == 999:
-            val.load_otolith_data('{}/valid_param_999/'.format(settings['dataset']), settings=settings)
-        else:
-            val.load_otolith_data('{}/valid_{}_{}/'.format(settings['dataset'], settings['split_name'], idr), settings=settings)
+        val.load_otolith_data('{}/valid_{}_{}/'.format(settings['dataset'], 
+                                settings['split_name'], idr), settings=settings)
         val.prepare()
 
     config = OtolithConfig()
-    
-    
-    all_x= []
-    all_y = []
-    
+     
     raw_X_tr = []
-    raw_y_tr = []
-    
-    
-    all_weights = []
+    raw_y_tr = [] 
     image_ids = dataset.image_ids
     for idx, image_id in enumerate(image_ids):
         image = dataset.load_image(image_id)
@@ -154,10 +146,7 @@ def train(name='unet', data_params={}, unet_params={}, train_params={}, settings
         wt_map = np.zeros([config.IMAGE_MAX_DIM, config.IMAGE_MAX_DIM], dtype=np.uint8)
         wt_map[:,:] = mask[:,:,0]
         weights = dataset.load_weights(wt_map, unet_params)
-
-        all_x.append( image )
-        all_y.append( (mask, weights) )   
-        
+ 
         raw_X_tr.append( image )
         raw_y_tr.append( (mask, weights) )   
         
@@ -165,7 +154,6 @@ def train(name='unet', data_params={}, unet_params={}, train_params={}, settings
 
     raw_X_val = []
     raw_y_val = []
-
     image_ids = val.image_ids
     for idx, image_id in enumerate(image_ids):
         image = val.load_image(image_id)
@@ -182,10 +170,7 @@ def train(name='unet', data_params={}, unet_params={}, train_params={}, settings
         wt_map = np.zeros([config.IMAGE_MAX_DIM, config.IMAGE_MAX_DIM], dtype=np.uint8)
         wt_map[:,:] = mask[:,:,0]
         weights = val.load_weights(wt_map, unet_params)
-
-        all_x.append( image )
-        all_y.append( (mask, weights) )   
-        
+ 
         raw_X_val.append( image )
         raw_y_val.append( (mask, weights) )  
         
@@ -201,7 +186,6 @@ def train(name='unet', data_params={}, unet_params={}, train_params={}, settings
 
         msk = raw_y_tr[idx][0]
         wt = raw_y_tr[idx][1]
-        
         train_array.append([img, msk, wt, 1])
 
 
@@ -215,7 +199,6 @@ def train(name='unet', data_params={}, unet_params={}, train_params={}, settings
         
         msk = raw_y_val[idx][0]
         wt = raw_y_val[idx][1]
-        
         val_array.append([img, msk, wt, 0])
     
     train_augmenters = []
@@ -228,34 +211,18 @@ def train(name='unet', data_params={}, unet_params={}, train_params={}, settings
     val_gen = data_generator(val_array, config, augmentations=val_augmenters, batch_size=1, validation=True, channels=CHANNELS)
 
     
-    input_shape = (512, 512, CHANNELS)
     adam = optimizers.Adam(lr=0.0004, decay=0.0)
-    if TRANSFER:
-        if LOSS_FUNCTION == 'edge':
-            model = modellib.get_weighted_unet_with_vgg_edge(input_shape, n_filters_base=4)
-        elif LOSS_FUNCTION == 'weighted':
-            model = modellib.get_weighted_unet_with_vgg(input_shape, n_filters_base=4)
-        else:
-            model = modellib.get_weighted_unet_with_vgg_both(input_shape, n_filters_base=4)
-    else:
-        if LOSS_FUNCTION == 'edge':
-            model = modellib.get_weighted_unet_edge(input_shape, n_filters_base=4)
-        elif LOSS_FUNCTION == 'weighted':
-            model = modellib.get_weighted_unet(input_shape, n_filters_base=4)
-        else:
-            model = modellib.get_weighted_unet_both(input_shape, n_filters_base=4)
-
-
-    model.compile(optimizer=adam, metrics=['accuracy', 'mse', 'mape']) # loss=my_loss
-    for layer in model.layers:
-        layer.trainable = True
+    unet_model.compile(optimizer=adam, metrics=['accuracy', 'mse', 'mape'])
 
     print("training")
     #earlystop = EarlyStopping(patience=100)
     checkpoint_save = modellib.CheckpointSaver(measurement='loss', name=name, settings=settings)
-    results = model.fit_generator(train_gen, validation_data=val_gen, validation_steps=len(val_array), steps_per_epoch=50, epochs=200, verbose=1, callbacks=[checkpoint_save])
+    unet_model.fit(train_gen, val_gen, val_steps=len(val_array), steps_per_epoch=50, epochs=200, verbose=1, callbacks=[checkpoint_save])
     
-    model.save("{}/{}/{}.h5".format(settings['dataset'], name, name))
+    save_dir = "{}/{}/{}.h5".format(settings['dataset'], name, name)
+    unet_model.save(save_dir)
+    with open('{}/{}/setting.json'.format(settings['dataset'], name), 'w') as fbase:
+        json.dump(settings, fbase)
 
 
 def evaluate(name='unet', full_ring_type=False, data_params={}, settings={}):
@@ -264,46 +231,42 @@ def evaluate(name='unet', full_ring_type=False, data_params={}, settings={}):
     idr = settings['idr']
     domain = settings['dataset']
     
-    try:
-        channels = data_params['channels']
-    except:
-        channels = 1
-
-    try:
-        normalize = data_params['normalize']
-    except:
-        normalize = True
-    
+    HYPERPARAMS_EXPERIMENT = False
+    if idr == 999:
+        HYPERPARAMS_EXPERIMENT = True
+    #try:
+    #    normalize = data_params['normalize']
+    #except:
+    #    normalize = True
+    unet_model = modellib.UNetModel(mode="testing")
     if 'source_dataset' in settings:
-        model_annulus = load_model('{}/{}/{}{}.h5'.format(settings['source_dataset'], name, name, settings['checkpoint']), compile=False)
+        model_dir = '{}/{}/{}{}.h5'.format(settings['source_dataset'], name, name, settings['checkpoint'])
     else:
-        model_annulus = load_model('{}/{}/{}{}.h5'.format(settings['dataset'], name, name, settings['checkpoint']), compile=False)
+        model_dir = '{}/{}/{}{}.h5'.format(settings['dataset'], name, name, settings['checkpoint'])
+
+    (_x, _y, CHANNELS) = unet_model.load(model_dir, settings, data_params, {})
 
 
     config = InferenceConfig()
-    valid = InferenceDataset()
-
-    all_valid = []
-    if settings['search_mode']:
+    all_test = []
+    if HYPERPARAMS_EXPERIMENT or settings['search_mode']:
+        test_ds = InferenceDataset()
         if full_ring_type:
-            valid.load_otolith_data('{}/images/'.format(domain), 2, exclude="train_paramfull_999", settings=settings)
+            test_ds.load_otolith_data('{}/images/'.format(domain), 2, exclude="train_paramfull_999", settings=settings)
         else:
-            valid.load_otolith_data('{}/images/'.format(domain), 2, exclude="train_param_999", settings=settings)
-        valid.prepare()
+            test_ds.load_otolith_data('{}/images/'.format(domain), 2, exclude="train_param_999", settings=settings)
+        test_ds.prepare()
 
     else:
-        #BALTIC TEMP
+        test_ds = InferenceDataset()
         if domain == 'datasets_baltic':
-            valid = InferenceDataset()
-            valid.load_otolith_data('{}/images'.format(domain), 1, exclude="train_{}_{}".format(settings['split_name'], idr), settings=settings)
-            valid.prepare()
-            for image_id in valid.image_ids:
-                all_valid.append([image_id, valid] )
+            test_ds.load_otolith_data('{}/images'.format(domain), 1, exclude="train_{}_{}".format(settings['split_name'], idr), settings=settings)
+            #for image_id in test_ds.image_ids:
+            #    all_test.append([image_id, test_ds] )
         else:
-            valid.load_otolith_data('{}/images/'.format(domain), 2, exclude="train_{}_{}".format(settings['split_name'], idr), settings=settings)
-            valid.prepare()
-            for image_id in valid.image_ids:
-                all_valid.append([image_id, valid] )
+            test_ds.load_otolith_data('{}/images/'.format(domain), 2, exclude="train_{}_{}".format(settings['split_name'], idr), settings=settings)
+        
+        test_ds.prepare()
 
     if domain == 'datasets_baltic':
         with open('datasets_baltic/all_data_map.json') as fson:
@@ -318,15 +281,12 @@ def evaluate(name='unet', full_ring_type=False, data_params={}, settings={}):
     pred_lines = []
     count_lines = []
 
-    for item_idx, validation_data in enumerate(all_valid):
-        
-        image_id = validation_data[0]
-        valid = validation_data[1]
-        
-        image = valid.load_image(image_id)
-        multi_masks, class_ids = valid.load_mask(image_id)
+    for item_idx, image_id in enumerate(test_ds.image_ids):
+         
+        image = test_ds.load_image(image_id)
+        multi_masks, class_ids = test_ds.load_mask(image_id)
 
-        info = valid.image_info[image_id]
+        info = test_ds.image_info[image_id]
         image_path = info['path']
         fname = image_path.replace('\\','/').split('/')[-1]
 
@@ -343,7 +303,7 @@ def evaluate(name='unet', full_ring_type=False, data_params={}, settings={}):
         if 'brighten' in settings:
             img_new = modify_image(img_new, mask_new, settings)
                          
-        image, window, scale, padding = valid.resize_image(
+        image, window, scale, padding = test_ds.resize_image(
             img_new, 
             min_dim=config.IMAGE_MIN_DIM,
             max_dim=config.IMAGE_MAX_DIM,
@@ -351,23 +311,23 @@ def evaluate(name='unet', full_ring_type=False, data_params={}, settings={}):
         )
         
         if domain == 'datasets_north':
-            nucleus_mask = valid.resize_mask(nucleus_mask, scale, padding)
+            nucleus_mask = test_ds.resize_mask(nucleus_mask, scale, padding)
         else:
             nucleus_mask = None
-            whole_mask = valid.resize_mask(mask_new, scale, padding)
+            whole_mask = test_ds.resize_mask(mask_new, scale, padding)
             
         cx, cy = get_center(whole_mask, nucleus_mask)
         
         img_gray = skimage.color.rgb2gray(image)
         img = skimage.color.gray2rgb(img_gray)
-        if channels == 1:
-            Z_val =  np.zeros( ( 1, config.IMAGE_MAX_DIM,config.IMAGE_MAX_DIM,1), dtype=np.float32)
-            Z_val[0,:,:,0] = img[:,:,0]
+        if CHANNELS == 1:
+            Z_test =  np.zeros( ( 1, config.IMAGE_MAX_DIM,config.IMAGE_MAX_DIM,1), dtype=np.float32)
+            Z_test[0,:,:,0] = img[:,:,0]
         else:
-            Z_val =  np.zeros( ( 1, config.IMAGE_MIN_DIM,config.IMAGE_MIN_DIM,3), dtype=np.float32)
-            Z_val[0,:,:,:] = img
+            Z_test =  np.zeros( ( 1, config.IMAGE_MIN_DIM,config.IMAGE_MIN_DIM,3), dtype=np.float32)
+            Z_test[0,:,:,:] = img
 
-        preds_test = model_annulus.predict(Z_val[0:1], verbose=1)
+        preds_test = unet_model.model.predict(Z_test[0:1], verbose=1)
         preds_test_t = (preds_test > 0.50).astype(np.uint8)
             
         item =  preds_test_t[0].squeeze()
@@ -382,8 +342,8 @@ def evaluate(name='unet', full_ring_type=False, data_params={}, settings={}):
             offbyone_reading += 1 
 
     if 'brighten' in settings:
-        output_file = "{}/{}/unet_br_{}_{}_of_{}.txt".format(domain, name, exact_reading, offbyone_reading, len(all_valid) )
+        output_file = "{}/{}/unet_br_{}_{}_of_{}.txt".format(domain, name, exact_reading, offbyone_reading, len(test_ds.image_ids) )
     else:
-        output_file = "{}/{}/unet_rd_{}_{}_of_{}.txt".format(domain, name, exact_reading, offbyone_reading, len(all_valid) )
+        output_file = "{}/{}/unet_rd_{}_{}_of_{}.txt".format(domain, name, exact_reading, offbyone_reading, len(test_ds.image_ids) )
     with open(output_file, 'w') as fout:
         fout.write("\n".join(pred_lines))
