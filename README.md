@@ -21,14 +21,14 @@ The following are the summarized steps for running the algorithms (after success
 
 7. Or skip manual checking of results by running: python post_process.py which will then create a folder named "all_results" containing the txt files summarizing the ai predictions for each image file as well as the expected age (from manual age readers).
 
-In case one does not want to train a new model but test existing models from the study, the following are the needed steps:
+In case one does not want to train a new model and just want to test existing models from the study, the following are the needed steps:
 
 1. A set of previously trained models can be downloaded from the following location:
 - models.zip: https://doi.org/10.5281/zenodo.10000645
 
-2. Unzip into the corresponding dataset folder (i.e. datasets_north/datasets_baltic)
+2. Unzip into the corresponding dataset folder (i.e. datasets_north/ or datasets_baltic/)
 
-    2.1 This zip file contains the trained models involving a single train-val-test split for both U-Net and Mask R-CNN. Due to the large sizes of the models, the models for other train-val-test splits (n=20 for North Sea, n=4 for Baltic) are not uploaded but are available upon request.
+    2.1 This zip file contains the trained models involving a single train-val-test split (n=1 subsampling replicate numbered accordingly) for both U-Net and Mask R-CNN. Due to the large sizes of the models, the models for other train-val-test splits (n=20 for North Sea, n=4 for Baltic) are not uploaded but are available upon request.
 
 3. To test these models against the images not use during training, edit the main.py and use the following settings:
 
@@ -89,7 +89,7 @@ Mask R-CNN with the Baltic Sea Dataset:
         'checkpoint': '_checkpoint'
         }
 
-4. One can also specify the target species by adding the 'target_species' in the settings dictionary
+4. One can also specify the target species by adding the 'target_species' in the settings dictionary (requires species_map.json file -> earlier commits may not contain this file)
 
 5. Also, the test sets from each dataset can be interchanged by specifying the destination set on 'dataset' keyword while indicating the original 'source_dataset' keyword in the settings.
 
