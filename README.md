@@ -3,13 +3,13 @@ AI_otolith -> Fish Age Reading using Object Detection and Segmentation
 
 To run the project, one can use either Command-Line or Web-based method (requires installation of the necessary packages and starting the development server). It is recommended to use the Command-line method at the moment as the full guide for the web-based method is still under development.
 
-The following are the summarized steps for running the algorithms (after successful git clone):
+The following are the summarized steps for running the methods:
 
 1. First, the two datasets must be downloaded from the following repositories:
 - North Sea dataset: DOI https://doi.org/10.5281/zenodo.8341092
 - Baltic Sea dataset: DOI https://doi.org/10.5281/zenodo.8341149
 
-2. Unzip the the downloaded image zip files into corresponding dataset folder (i.e. datasets_north/datasets_baltic)
+2. Unzip the the downloaded image zip files into corresponding dataset folder (i.e. datasets_north/ or datasets_baltic/)
 
 3. Run: python pre_process.py
 
@@ -17,7 +17,7 @@ The following are the summarized steps for running the algorithms (after success
 
 5. Run: python main.py
 
-6. Inspect the results into the newly created folders in both either datasets_north or datasets_baltic
+6. Inspect the results into the newly created folders in both either datasets_north/ or datasets_baltic/
 
 7. Or skip manual checking of results by running: python post_process.py which will then create a folder named "all_results" containing the txt files summarizing the ai predictions for each image file as well as the expected age (from manual age readers).
 
@@ -93,6 +93,21 @@ Mask R-CNN with the Baltic Sea Dataset:
 
 5. Also, the test sets from each dataset can be interchanged by specifying the destination set on 'dataset' keyword while indicating the original 'source_dataset' keyword in the settings.
 
+   U-Net trained on North Sea Dataset to be tested on Baltic Sea Dataset:
+    settings = {
+        'dataset' : 'datasets_baltic',
+        'run_type': 'test',                  
+        'run_label': 'randsub',   
+        'search_mode': False,                
+        'idr': 0,                  
+        'selected': [47],                
+        'split_type': 'rs',                
+        'split_name': 'randsub',          
+        'checkpoint': '_checkpoint',
+        'source_dataset': 'datasets_north',
+        }
 
-
+6. (Optional, WIP) For web-based usage (localhost), run "python manage.py runserver". Then, use the following URLs to perform experiments and customize the settings with GET parameters (e.g. ?dataset=datasets_baltic&run_type=test&run_label=randsub ...)
+   U-Net: localhost:8000/otoliths/experiments/run_unet/
+   Mask R-CNN: localhost:8000/otoliths/experiments/run_mrcnn/
 
