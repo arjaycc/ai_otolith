@@ -94,6 +94,8 @@ Mask R-CNN with the Baltic Sea Dataset:
 5. Also, the test sets from each dataset can be interchanged by specifying the destination set on 'dataset' keyword while indicating the original 'source_dataset' keyword in the settings.
 
    U-Net trained on North Sea Dataset to be tested on Baltic Sea Dataset:
+
+   ````
     settings = {
         'dataset' : 'datasets_baltic',
         'run_type': 'test',                  
@@ -106,8 +108,10 @@ Mask R-CNN with the Baltic Sea Dataset:
         'checkpoint': '_checkpoint',
         'source_dataset': 'datasets_north',
         }
+    ````
+7. (Optional, WIP) For web-based usage (localhost), run "python manage.py runserver". Then, use the following URLs to perform experiments and customize the settings with GET parameters (e.g. ?dataset=datasets_baltic&run_type=test&run_label=randsub ...)
 
-6. (Optional, WIP) For web-based usage (localhost), run "python manage.py runserver". Then, use the following URLs to perform experiments and customize the settings with GET parameters (e.g. ?dataset=datasets_baltic&run_type=test&run_label=randsub ...)
-   U-Net: localhost:8000/otoliths/experiments/run_unet/
-   Mask R-CNN: localhost:8000/otoliths/experiments/run_mrcnn/
+   * U-Net: localhost:8000/otoliths/experiments/run_unet/
+
+   * Mask R-CNN: localhost:8000/otoliths/experiments/run_mrcnn/
 
