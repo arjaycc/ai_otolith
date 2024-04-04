@@ -258,15 +258,57 @@ def experiments(request):
 
 @login_required
 def experiments_unet(request):
+
+    dataset = 0
+    if 'dataset' in request.GET:
+        dataset = int(request.GET['dataset'])
+
+    run_type = 'test'
+    if 'run_type' in request.GET:
+        run_type = int(request.GET['run_type'])
+
+    run_label = 'randfold'
+    if 'run_label' in request.GET:
+        run_label = int(request.GET['run_label'])
+
+    idr = 0
+    if 'idr' in request.GET:
+        idr = int(request.GET['idr'])
+
+    split_name = 'fold'
+    if 'split_name' in request.GET:
+        split_name = int(request.GET['split_name'])
+
+    selected = 47
+    if 'selected' in request.GET:
+        selected = int(request.GET['selected'])
+
+    target_species = 0
+    if 'target_species' in request.GET:
+        target_species = int(request.GET['target_species'])
+
+    age_limit = 0
+    if 'age_limit' in request.GET:
+        age_limit = int(request.GET['age_limit'])
+
+    brighten = True
+    if 'brighten' in request.GET:
+        brighten = int(request.GET['brighten'])
+
+    source_dataset = 0
+    if 'source_dataset' in request.GET:
+        source_dataset = int(request.GET['source_dataset'])
+
+
     settings = {
-        'dataset' : 'datasets_north',
-        'run_type': 'test',
-        'run_label': 'randsub',
+        'dataset' : dataset,
+        'run_type': run_type,
+        'run_label': run_label,
         'search_mode': False,
-        'idr': 0,
-        'selected': [47],
+        'idr': idr,
+        'selected': [selected],
         'split_type': 'rs', # 5-fold, 5-random subsampling
-        'split_name': 'randsub',
+        'split_name': split_name,
         'checkpoint': '_checkpoint',
         #'target_species': 'cod',
         #'age_limit': 4,
@@ -275,6 +317,69 @@ def experiments_unet(request):
     }
     run_unet(settings)
     return render(request, 'otoliths/experiments.html')
+
+@login_required
+def experiments_mrcnn(request):
+
+    dataset = 0
+    if 'dataset' in request.GET:
+        dataset = int(request.GET['dataset'])
+
+    run_type = 'test'
+    if 'run_type' in request.GET:
+        run_type = int(request.GET['run_type'])
+
+    run_label = 'randfold'
+    if 'run_label' in request.GET:
+        run_label = int(request.GET['run_label'])
+
+    idr = 0
+    if 'idr' in request.GET:
+        idr = int(request.GET['idr'])
+
+    split_name = 'fold'
+    if 'split_name' in request.GET:
+        split_name = int(request.GET['split_name'])
+
+    selected = 47
+    if 'selected' in request.GET:
+        selected = int(request.GET['selected'])
+
+    target_species = 0
+    if 'target_species' in request.GET:
+        target_species = int(request.GET['target_species'])
+
+    age_limit = 0
+    if 'age_limit' in request.GET:
+        age_limit = int(request.GET['age_limit'])
+
+    brighten = True
+    if 'brighten' in request.GET:
+        brighten = int(request.GET['brighten'])
+
+    source_dataset = 0
+    if 'source_dataset' in request.GET:
+        source_dataset = int(request.GET['source_dataset'])
+
+    
+    settings = {
+        'dataset' : dataset,
+        'run_type': run_type,
+        'run_label': run_label,
+        'search_mode': False,
+        'idr': idr,
+        'selected': [selected],
+        'split_type': 'rs', # 5-fold, 5-random subsampling
+        'split_name': split_name,
+        'checkpoint': '_checkpoint',
+        #'target_species': 'cod',
+        #'age_limit': 4,
+        #'brighten': True,
+        #'source_dataset': 'datasets_north'
+    }
+    run_mrcnn(settings)
+    return render(request, 'otoliths/experiments.html')
+
 
 
 @login_required

@@ -22,6 +22,7 @@ urlpatterns = [
     path('detail/<str:image_name>', views.data_detail),
     path('experiments/', views.experiments),
     path('experiments/run_unet/', views.experiments_unet),
+    path('experiments/run_mrcnn/', views.experiments_mrcnn),
     
     path('interact/', views.interact),
     path('dataview/<str:dataset>/', views.dataview_sets),
