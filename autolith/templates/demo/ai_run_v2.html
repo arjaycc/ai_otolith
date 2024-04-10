@@ -1,0 +1,156 @@
+{% extends "base.html" %}
+
+{% block title %} <h2>Section: RUN METHOD</h2> {% endblock %} 
+
+<!-- Specific Page CSS goes HERE  -->
+{% block stylesheets %}{% endblock stylesheets %}
+
+
+{% block container %}
+
+{% if existing_results %}
+  <p>Detected existing result: <a href="/demo/results/?dataset={{dataset}}&folder={{folder}}&fname={{existing_results}}">{{ existing_results}}</a></p>
+{% endif %}
+<form role="form" method="post" action="/demo/start_run/" class="col-8">
+    
+  {% csrf_token %} 
+
+
+  <div class="row">
+    <div class="col-md-12">
+      <div class="form-group">
+        <label class="label">Method</label>
+        {{ form.method }}
+      </div>
+    </div>
+  </div>
+  <span class="text-danger">{{ form.method.errors }}</span>
+
+  <div class="row">
+    <div class="col-md-12">
+      <div class="form-group">
+        <label class="label">Dataset (Note: for testing, image dataset uploaded in zenodo needs to be downloaded first)</label>
+        {{ form.dataset }}
+      </div>
+    </div>
+  </div>
+  <span class="text-danger">{{ form.dataset.errors }}</span>
+
+  <div class="row">
+    <div class="col-md-12">
+      <div class="form-group">
+        <label class="label">Run Type (Note: for testing, model dataset uploaded in zenodo needs to be downloaded first)</label>
+        {{ form.run_type }}
+      </div>
+    </div>
+  </div>
+  <span class="text-danger">{{ form.run_type.errors }}</span>
+
+  <div class="row">
+    <div class="col-md-12">
+      <div class="form-group">
+        <label class="label">Run Label</label>
+        {{ form.run_label }}
+      </div>
+    </div>
+  </div>
+  <span class="text-danger">{{ form.run_label.errors }}</span>
+
+  <div class="row">
+    <div class="col-md-12">
+      <div class="form-group">
+        <label class="label">Run ID</label>
+        {{ form.idr }}
+      </div>
+    </div>
+  </div>
+  <span class="text-danger">{{ form.idr.errors }}</span>
+
+  <div class="row">
+    <div class="col-md-12">
+      <div class="form-group">
+        <label class="label">Split Name</label>
+        {{ form.split_name }}
+      </div>
+    </div>
+  </div>
+  <span class="text-danger">{{ form.split_name.errors }}</span>
+
+  <div class="row">
+    <div class="col-md-12">
+      <div class="form-group">
+        <label class="label">Selected Parameter ID</label>
+        {{ form.selected }}
+      </div>
+    </div>
+  </div>
+  <span class="text-danger">{{ form.selected.errors }}</span>
+
+
+
+  <div class="row">
+    <div class="col-md-12">
+      <div class="form-group">
+        <label class="label">Continual</label>
+        {{ form.continual }}
+      </div>
+    </div>
+  </div>
+  <span class="text-danger">{{ form.continual.errors }}</span>
+
+
+  <div class="row">
+    <div class="col-md-12">
+      <div class="form-group">
+        <label class="label">Base Weight/Model</label>
+        {{ form.base }}
+      </div>
+    </div>
+  </div>
+  <span class="text-danger">{{ form.base.errors }}</span>
+
+  <div class="row">
+    <div class="col-md-12">
+      <div class="form-group">
+        <label class="label">Base ID</label>
+        {{ form.base_id }}
+      </div>
+    </div>
+  </div>
+  <span class="text-danger">{{ form.base_id.errors }}</span>
+
+
+  <div class="row">
+    <div class="col-md-12">
+      <div class="form-group">
+        <label class="label">Source Domain</label>
+        {{ form.source_dataset }}
+      </div>
+    </div>
+  </div>
+  <span class="text-danger">{{ form.source_dataset.errors }}</span>
+
+  <div class="row">
+    <div class="col-md-12">
+      <div class="form-group">
+        <label class="label">Evaluate Selected Set</label>
+        {{ form.eval_balanced_set }}
+      </div>
+    </div>
+  </div>
+  <span class="text-danger">{{ form.eval_balanced_set.errors }}</span>
+
+
+  <button type="submit" name="register" class="btn pull-left">START</button>
+
+
+
+  <div class="clearfix"></div>
+
+</form>
+{% endblock container %}
+
+
+
+<!-- Specific Page JS goes HERE  -->
+{% block javascripts %}{% endblock javascripts %}

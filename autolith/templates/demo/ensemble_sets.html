@@ -1,0 +1,50 @@
+{% extends "base.html" %}
+
+{% block title %} <h2>Section: {{ dataset|capfirst }} Datasets</h2> {% endblock %} 
+
+<!-- Specific Page CSS goes HERE  -->
+{% block stylesheets %}{% endblock stylesheets %}
+
+
+{% block content %}
+
+
+<div class="card-body">
+  <div class="table-responsive">
+    <table class="table">
+      <thead class=" text-primary">
+        <th>
+          Name
+        </th>
+        <th>
+         AI Methods
+        </th>
+
+      </thead>
+      <tbody>
+      {% for folder in folders %}
+        <tr>
+            <td>
+                <h3>{{ folder.0 }}</h3>
+            </td>
+            <td>
+                <form action="." method="post">
+                  <input type="text" name="split_name" value="{{ folder.0 }}" hidden>
+                  <input type="submit" name="action" value="Train on {{ folder.0  }} + Predict Test Images">
+                </form> 
+
+            </td>
+
+         </tr>
+      {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+
+{% endblock content %}
+
+
+
+<!-- Specific Page JS goes HERE  -->
+{% block javascripts %}{% endblock javascripts %}

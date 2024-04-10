@@ -1,0 +1,72 @@
+{% extends "base.html" %}
+
+{% block title %} <h2>Section: {{ dataset|capfirst }} Datasets</h2> {% endblock %} 
+
+<!-- Specific Page CSS goes HERE  -->
+{% block stylesheets %}{% endblock stylesheets %}
+
+
+{% block content %}
+
+
+
+    <h4>Important! Download zenodo data and unzip images to {{ source }}/images/ </h4>
+    {% if source == 'datasets_north' %}
+    <p>North Sea: <a href="https://doi.org/10.5281/zenodo.8341092">https://doi.org/10.5281/zenodo.8341092</a></p>
+    {% else %}
+    <p>Baltic Sea: <a href="https://doi.org/10.5281/zenodo.8341149">https://doi.org/10.5281/zenodo.8341149</a></p>
+    {% endif %}
+
+  <hr>
+
+
+<div class="card-body">
+  <div class="table-responsive">
+    <table class="table">
+      {% for result in results_list %}
+      {% if forloop.first %}
+      <thead class=" text-primary">
+        {% for item in result %}
+        <th>
+          {{ item }}
+        </th>
+        {% endfor %}
+<!--         <th>
+          AI Reading
+        </th>
+        <th>
+          Manual Reading
+        </th> -->
+
+      </thead>
+      <tbody>
+        {% else %}
+
+        <tr>
+            {% for item in result %}
+              {% if forloop.first %}
+              <td>
+                <a href="/demo/dataview/{{source}}/images/{{ result.0 }}"><span>{{ item }}</span></a>
+              </td>
+              {% else %}
+              <td>
+                {{ item }}
+              </td>
+              {% endif %}
+            {% endfor %}
+
+            
+         </tr>
+         {% endif %}
+      {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+
+{% endblock content %}
+
+
+
+<!-- Specific Page JS goes HERE  -->
+{% block javascripts %}{% endblock javascripts %}

@@ -1,0 +1,83 @@
+{% extends "base.html" %}
+
+{% block title %} <h2>Section: Experiments</h2> {% endblock %} 
+
+<!-- Specific Page CSS goes HERE  -->
+{% block stylesheets %}{% endblock stylesheets %}
+
+
+{% block container %}
+
+
+<ul>
+
+    <li>
+         <a href="/demo/dataview/datasets_user/">View Sample Upload (Baltic)</a>
+    </li>
+
+    <li>
+         <a href="/demo/dataview/datasets_north/">View Experimental Set (North Sea Dataset)</a>
+    </li>
+
+    <li>
+         <a href="/demo/dataview/datasets_baltic/">View Experimental Set (Baltic Sea Dataset)</a>
+    </li>
+
+    <br>
+    <h5> (SOME) PRE-DEFINED RUN SETUPS</h5>
+
+    <li>
+         <a href="/demo/unet_setup/?dataset=datasets_baltic&base=north&base_id=0&split_name=ex0kfold&run_label=0exkfoldbasednorth&selected=37">Test U-Net Transfer Learning K-Fold (Baltic Test, BaseWeight=NorthModel, BaseWeightSourceID=0, RunIdentifier=0) </a>
+    </li>
+
+    <li>
+         <a href="/demo/mrcnn_setup/?dataset=datasets_baltic&base=north&base_id=0&split_name=ex0kfold&run_label=ex0kfoldbasednorth&selected=2">Test Mask R-CNN Transfer Learning K-Fold (Baltic Test, BaseWeight=NorthModel, BaseWeightSourceID=0, RunIdentifier=0) </a>
+    </li>
+
+
+    <li>
+         <a href="/demo/unet_setup/?dataset=datasets_baltic&base=north&base_id=0&split_name=ex0combined&run_label=ex0combobasednorth&selected=37">Test U-Net Transfer Learning Combined Folds (Baltic Test, BaseWeight=NorthModel, BaseWeightSourceID=0, RunIdentifier=0) </a>
+    </li>
+
+    <li>
+         <a href="/demo/mrcnn_setup/?dataset=datasets_baltic&base=north&base_id=0&split_name=ex0combined&run_label=ex0combobasednorth&selected=2">Test Mask R-CNN Transfer Learning Combined Folds (Baltic Test, BaseWeight=NorthModel, BaseWeightSourceID=0, RunIdentifier=0) </a>
+    </li>
+
+
+
+    <li>
+         <a href="/demo/unet_setup/?dataset=datasets_baltic&base=north&base_id=0&split_name=in0kfold&run_label=in0normalbasednorth&selected=37">Test U-Net Continual Learning without Rehearsal (Baltic Test, BaseWeight=NorthModel, BaseWeightSourceID=0, RunIdentifier=0) </a>
+    </li>
+
+    <li>
+         <a href="/demo/mrcnn_setup/?dataset=datasets_baltic&base=north&base_id=0&split_name=in0kfold&run_label=in0normalbasednorth&selected=2">Test Mask R-CNN Continual Learning without Rehearsal (Baltic Test, BaseWeight=NorthModel, BaseWeightSourceID=0, RunIdentifier=0) </a>
+    </li>
+
+
+    <li>
+         <a href="/demo/unet_setup/?dataset=datasets_baltic&base=north&base_id=0&split_name=in0retain&run_label=in0retainbasednorth&selected=37">Test U-Net Continual Learning with Rehearsal (Baltic Test, BaseWeight=NorthModel, BaseWeightSourceID=0, RunIdentifier=0) </a>
+    </li>
+
+    <li>
+         <a href="/demo/mrcnn_setup/?dataset=datasets_baltic&base=north&base_id=0&split_name=in0retain&run_label=in0retainbasednorth&selected=2">Test Mask R-CNN Continual Learning with Rehearsal (Baltic Test, BaseWeight=NorthModel, BaseWeightSourceID=0, RunIdentifier=0) </a>
+    </li>
+
+    <br>
+    <h5>(SOME) ENSEMBLE RUN SETUPS</h5>
+
+    <li>
+         <a href="/demo/ensemble/datasets_ensemble/north/">Test Ensemble Learning (North Sea Dataset) </a>
+    </li>
+    <li>
+         <a href="/demo/ensemble/datasets_ensemble/baltic/">Test Ensemble Learning (Baltic Sea Dataset) </a>
+    </li>
+
+</ul>
+
+
+{% endblock container %}
+
+
+
+<!-- Specific Page JS goes HERE  -->
+{% block javascripts %}{% endblock javascripts %}

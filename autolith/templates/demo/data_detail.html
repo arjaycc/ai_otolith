@@ -1,0 +1,36 @@
+{% extends "base.html" %}
+
+{% block title %} <a href="/otoliths/images/"><< Back << </a> {% endblock %} 
+
+<!-- Specific Page CSS goes HERE  -->
+{% block stylesheets %}{% endblock stylesheets %}
+
+
+{% block container %}
+
+<a href="?process=Segment">Remove Background</a>
+<span> ||| </span>
+<a href="?process=EdgeDetection">Detect Edges</a>
+<span> ||| </span>
+<a href="?process=LogAdjustment">Logarithmic Adjustment</a>
+<span> ||| </span>
+<a href="?process=Contour">Contour</a>
+<span> ||| </span>
+<a href="?process=PeakLeft">Find Peaks Left</a>
+<span> ||| </span>
+<a href="?process=PeakRight">Find Peaks Right</a>
+<span> ||| </span>
+<a href="?process=SelectRegions">Detect Annuli</a>
+ 
+<div class="img-wrapper" style="display: inline-block; width: 800px; margin: 2px;">
+    <img style="width: 800px; height: 800px; margin: 5px;" src="/static/source/{{ image_name }}">
+</div>
+
+
+
+{% endblock container %}
+
+
+
+<!-- Specific Page JS goes HERE  -->
+{% block javascripts %}{% endblock javascripts %}

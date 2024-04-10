@@ -1,0 +1,54 @@
+{% extends "base.html" %}
+{% load static %}
+{% block title %} <a href="/"><< Back << </a> {% endblock %} 
+
+<!-- Specific Page CSS goes HERE  -->
+{% block stylesheets %}{% endblock stylesheets %}
+
+
+{% block container %}
+<div>
+    <form action="{{ image_name }}" method="GET" style="display: inline-block;"><input type="submit" name="process" value="U-Net Segmentation">
+      <select name="weights">
+          <option style="width: 20px;">{{ sample_model_unet }}</option>
+      </select>
+    </form>
+    <span> ||| </span>
+    <!-- <input type="text" name="alpha" value="1.5"> -->
+    
+    <span> ||| </span>
+    <a href="?process=User Annotation" onclick="return !window.open(this.href, 'test', '')" target="_blank">User Annotation</a>
+    <!-- <form action="{{ image_name }}" method="GET" style="display: inline-block;"><input type="submit" name="process" value="User Annotation"></form> -->
+    <span> ||| </span>
+    <a href="?process=AI-Assisted Annotation" onclick="return !window.open(this.href, 'test', '')" target="_blank">AI-Assisted Annotation</a>
+    <!-- <form action="{{ image_name }}" method="GET" style="display: inline-block;"><input type="submit" name="process" value="AI-Assisted Annotation"></form> -->
+</div>
+<div>
+    <form action="{{ image_name }}" method="GET" style="display: inline-block;"><input type="submit" name="process" value="Mask R-CNN Detection">
+      <select name="weights">
+          <option style="width: 20px;">{{ sample_model_mrcnn }}</option>
+      </select>
+    </form>
+    <span> ||| </span>
+    <span> ||| </span>
+    <a href="?process=Brighten">Brighten</a>
+    <span> ||| </span>
+    <!-- <form action="{{ image_name }}" method="GET" style="display: inline-block;"><input type="submit" name="process" value="Brighten"></form> -->
+    <a href="?process=Background Removal">Remove Background</a>
+    <span> ||| </span>
+    <!-- <form action="{{ image_name }}" method="GET" style="display: inline-block;"><input type="submit" name="process" value="Background Removal"></form> -->
+    <a href="?process=Brighten with Background Removal">Brighten+Remove Background</a>
+    <!-- <form action="{{ image_name }}" method="GET" style="display: inline-block;"><input type="submit" name="process" value="Brighten with Background Removal"></form> -->
+</div>
+<div class="img-wrapper" style="display: inline-block; width: 800px; margin: 2px;">
+    <img style="width: 800px; height: 800px; margin: 5px;" src="{% static 'detail/'|add:image_name %}">
+</div>
+
+
+
+{% endblock container %}
+
+
+
+<!-- Specific Page JS goes HERE  -->
+{% block javascripts %}{% endblock javascripts %}

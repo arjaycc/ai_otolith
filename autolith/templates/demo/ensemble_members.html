@@ -1,0 +1,37 @@
+{% extends "base.html" %}
+{% load static %}
+{% block title %} <h2>Section: View Data</h2> {% endblock %} 
+
+<!-- Specific Page CSS goes HERE  -->
+{% block stylesheets %}{% endblock stylesheets %}
+
+
+{% block container %}
+
+
+<div>
+    <form action="." method="post"><input type="submit" name="mode" value="Brighten"><input type="text" name="alpha" value="1.5">Alpha Value</form>
+    <form action="." method="post"><input type="submit" name="mode" value="Background Removal"></form>
+    <form action="." method="post"><input type="submit" name="mode" value="Scale"><input type="text" name="scale" value="1.0">Scale Factor</form>
+</div>
+
+
+<ul>
+{% for image in images %}
+    <li style="display: inline-block; margin: 5px;">
+        <a href="{{ image }}"><img style="width: 200px; height: 200px; margin: 5px;" src="{% static ''|add:folder|add:'/'|add:image %}"></a>
+    </li>
+
+{% endfor %}
+</ul>
+
+{% endblock container %}
+
+
+
+<!-- Specific Page JS goes HERE  -->
+{% block javascripts %}
+
+
+
+{% endblock javascripts %}

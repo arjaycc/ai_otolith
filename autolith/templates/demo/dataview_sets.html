@@ -1,0 +1,143 @@
+{% extends "base.html" %}
+
+{% block title %} <h2>Section: {{ dataset|capfirst }} Datasets</h2> {% endblock %} 
+
+<!-- Specific Page CSS goes HERE  -->
+{% block stylesheets %}{% endblock stylesheets %}
+
+
+{% block content %}
+
+  {% if dataset != 'datasets_user' %}
+    <h4>Important! Download zenodo data and unzip images to {{ dataset }}/images/ </h4>
+    {% if dataset == 'datasets_north' %}
+    <p>North Sea: <a href="https://doi.org/10.5281/zenodo.8341092">https://doi.org/10.5281/zenodo.8341092</a></p>
+    {% else %}
+    <p>Baltic Sea: <a href="https://doi.org/10.5281/zenodo.8341149">https://doi.org/10.5281/zenodo.8341149</a></p>
+    {% endif %}
+  {% endif %}
+  <hr>
+  <form role="form" method="get" action="." class="col-5">
+      
+    {% csrf_token %} 
+
+    <div class="row">
+      <div class="col-md-12">
+        <div class="form-group">
+          <label class="label">Filter Based on Data Subset</label>
+          {{ form.subset }}
+        </div>
+      </div>
+    </div>
+    <span class="text-danger">{{ form.subset.errors }}</span>
+
+    <button type="submit" name="mode" value="0" class="btn pull-left">Filter</button>
+
+    <div class="clearfix"></div>
+
+  </form>
+
+
+
+<div class="card-body">
+  <div class="table-responsive">
+    <table class="table">
+      <thead class=" text-primary">
+
+        <th>
+          Name
+        </th>
+        <th>
+          With Images
+        </th>
+        <th>
+          With Validation
+        </th>
+        <th>
+         With Annotations
+        </th>
+        <th>
+         AI Methods
+        </th>
+
+      </thead>
+      <tbody>
+      {% for folder in folders %}
+        <tr>
+
+            <td>
+                <a href="{{ folder.0 }}"><h3>{{ folder.0 }}</h3></a>
+            </td>
+            <td>
+              <h3>{{ folder.1 }}</h3>
+<!--                 {% if folder.1 %}
+                <h3>{{ folder.1 }}</h3>
+                {% else %}
+                <span>False</span>
+                <form action="." method="post">
+                  <input type="text" name="split_name" value="{{ folder.0 }}" hidden>
+                  <input type="text" name="image_scale" value="1" hidden>
+                  <input type="submit" name="process" value="Load Images">
+                </form> 
+                {% endif %} -->
+            </td>
+            <td>
+              <h3>{{ folder.2 }}</h3>
+                {% if folder.2 %}
+                {% else %}
+                    {% if folder.1 and folder.3 %}
+                    <form action="." method="post" >
+                      <input type="text" name="split_name" value="{{ folder.0 }}" hidden>
+                      <input type="text" name="proportion" value="1" hidden>
+                      <input type="submit" name="process" value="Create-Validation">
+                    </form> 
+                    {% else %}
+                    <span>Create Annotations for Training Set First</span>
+                    {% endif %}
+                {% endif %}
+
+            </td>
+            <td>
+              <h3>{{ folder.3 }}</h3>
+<!--                 {% if folder.2 %}
+                True
+                {% else %}
+                  {% if folder.3 %}
+                  <form action="." method="post"><input type="submit" name="action" value="Create Annotation" disabled="disabled"></form> 
+                  {% else %}
+                  <form action="." method="post"><input type="submit" name="action" value="Create Annotation"></form> 
+                  {% endif %}
+                {% endif %} -->
+            </td>
+            <td>
+                <form action="." method="post">
+                  <input type="text" name="split_name" value="{{ folder.0 }}" hidden>
+                  <!-- {% if folder.3 %} -->
+                  <input type="submit" name="action" value="Train on {{ folder.0  }}" {% if not folder.4 %} disabled="disabled"{% endif %}>
+<!--                   {% else %}
+                  <input type="submit" name="action" value="Train on {{ folder.0  }}">
+                  {% endif %} -->
+                </form> 
+                <form action="." method="post">
+                  <input type="text" name="split_name" value="{{ folder.0 }}" hidden>
+                  <!-- {% if folder.3 %} -->
+                  <input type="submit" name="action" value="Predict images not in {{ folder.0  }}" {% if not folder.4 %} disabled="disabled"{% endif %}>
+<!--                   {% else %}
+                  <input type="submit" name="action" value="Predict images not in {{ folder.0  }}">
+                  {% endif %} -->
+                </form> 
+            </td>
+
+         </tr>
+      {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+
+{% endblock content %}
+
+
+
+<!-- Specific Page JS goes HERE  -->
+{% block javascripts %}{% endblock javascripts %}

@@ -1,0 +1,59 @@
+{% extends "base.html" %}
+
+{% block title %} <h2>Section: Upload Data</h2> {% endblock %} 
+
+<!-- Specific Page CSS goes HERE  -->
+{% block stylesheets %}{% endblock stylesheets %}
+
+
+{% block content %}
+
+
+<form role="form" method="post" action="" enctype="multipart/form-data">
+    
+  {% csrf_token %} 
+  {{ form.files }}
+  <div class="row">
+    <div class="col-md-12">
+      <div class="form-group">
+        <label class="label">Image Folder</label>
+        {{ form.folder }}
+      </div>
+    </div>
+  </div>
+  <span class="text-danger">{{ form.folder.errors }}</span>
+
+  <br />
+
+  <div class="row">
+    <div class="col-md-12">
+      <div class="form-group">
+        <label class="label">Data ID</label>
+        {{ form.data_id }}
+      </div>
+    </div>
+  </div>
+  <span class="text-danger">{{ form.data_id.errors }}</span>
+
+  <br />
+  <span>Ring Annotations:</span>
+    {{ form.ring_groundtruth }}
+
+  <span>Outer Annotations:</span>
+    {{ form.outer_contour }}
+
+  <br />
+
+  <button type="submit" name="register" class="btn pull-left">Upload</button>
+
+
+
+  <div class="clearfix"></div>
+
+</form>
+{% endblock content %}
+
+
+
+<!-- Specific Page JS goes HERE  -->
+{% block javascripts %}{% endblock javascripts %}

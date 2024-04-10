@@ -1,0 +1,55 @@
+{% extends "base.html" %}
+{% load static %}
+{% block title %} <h2>Section: AI Methods</h2> {% endblock %} 
+
+<!-- Specific Page CSS goes HERE  -->
+{% block stylesheets %}{% endblock stylesheets %}
+
+
+{% block content %}
+<div  style="display: block; width: 1000px; margin: 10px;">
+    
+    <div class="selected" style="display: inline-block; width: 300px; margin: 10px;">
+        <h2>Image</h2>
+    </div>
+
+    <div class="selected" style="display: inline-block; width: 300px; margin: 10px;">
+        <h2>U-NET</h2>
+    </div>
+
+    <div class="selected" style="display: inline-block; width: 300px; margin: 10px;">
+        <h2>MASK R-CNN</h2>
+    </div>
+
+    {% for image, dataset, folder in images %}
+
+    <div class="selected" style="display: inline-block; width: 300px; margin: 10px;">
+        <a href="/demo/dataview/{{dataset}}/{{folder}}/{{image}}"><img style="width: 300px; height: 300px; margin: 0px;" src="{% static 'data/'|add:dataset|add:'/'|add:folder|add:'/'|add:image %}"></a>
+    </div>
+
+    <!-- <div class="selected" style="display: inline-block; width: 400px; margin: 10px;">
+        <img style="width: 400px; height: 400px; margin: 0px;" src="{% static  'images/16_716_81.png' %}">
+    </div> -->
+
+    <div class="selected" style="display: inline-block; width: 300px; margin: 10px;">
+        <img style="width: 300px; height: 300px; margin: 0px;" src="{% static 'data/unet_annuli/'|add:folder|add:'/'|add:image %}" alt="Generate by clicking leftmost image link!">
+    </div>
+
+    <!-- <div class="selected" style="display: inline-block; width: 400px; margin: 10px;">
+        <img style="width: 400px; height: 400px; margin: 0px;" src="{% static  'images/17_731_282.png' %}">
+    </div> -->
+
+    <div class="selected" style="display: inline-block; width: 300px; margin: 10px;">
+        <img style="width: 300px; height: 300px; margin: 0px;" src="{% static 'data/mrcnn_annuli/'|add:folder|add:'/'|add:image %}" alt="Generate by clicking leftmost image link!">
+    </div>
+
+{% endfor %}
+
+</div>
+
+{% endblock content %}
+
+
+
+<!-- Specific Page JS goes HERE  -->
+{% block javascripts %}{% endblock javascripts %}

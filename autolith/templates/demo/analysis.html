@@ -1,0 +1,46 @@
+{% extends "base.html" %}
+
+{% block title %} Section: Image Processing {% endblock %} 
+
+<!-- Specific Page CSS goes HERE  -->
+{% block stylesheets %}{% endblock stylesheets %}
+
+
+{% block container %}
+
+<h2>Image Processing Tools</h2>
+
+<div>
+<form action='/batch/' method='GET'>
+    <select name="tool"> Select the image processing tool:
+        <option label="sobel">Segmentation</option>
+        <option label="sobel">Sobel Filter</option>
+        <option label="laplacian">Laplacian Filter</option>
+        <option label="canny">Canny</option>
+    </select>
+
+    <button type="submit">GO</button>
+</form>
+
+</div>
+
+{% for pair in pairs %}
+<div class="selected" style="display: inline-block; width: 400px; margin: 0px;">
+    <img style="width: 400px; height: 400px; margin: 0px;" src="/static/otoliths/{{ pair.0 }}">
+</div>
+
+<span style="display: inline-block; width: 200px; padding: 20px;">RESULT 1 >>> </span>
+
+<div class="result" style="display: inline-block; width: 400px; margin: 0px;">
+    <img style="width: 400px; height: 400px; margin: 0px;" src="/static/otoliths/{{ pair.1 }}">
+</div>
+
+{% endfor %}
+
+
+{% endblock container %}
+
+
+
+<!-- Specific Page JS goes HERE  -->
+{% block javascripts %}{% endblock javascripts %}
