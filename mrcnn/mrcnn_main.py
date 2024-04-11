@@ -81,34 +81,42 @@ def train(name='mrcnn', data_params={}, edge_params={}, train_params={}, setting
     
     ROOT_DIR = os.getcwd()
     COCO_MODEL_PATH = ''
-    if settings['base'] == 'coco':
-        COCO_MODEL_PATH = os.path.join(ROOT_DIR, "mask_rcnn_coco.h5")
-    elif settings['base'] == 'north':
-        if settings['continual'] == 0:
-            COCO_MODEL_PATH = '{}/{}/mrcnn_checkpoint.h5'.format(domain, "mrcnn_randsub{}run1_6".format(settings['base_id'])) # fixed for baltic
-        else:
-            if idr > 0:
-                prev_id = idr - 1
-                #COCO_MODEL_PATH = '{}/{}/mrcnn_checkpoint.h5'.format(domain, "mrcnn_in{}normalbasednorth{}run1_2".format(settings['base_id'], prev_id))
-                COCO_MODEL_PATH = '{}/{}/mrcnn_checkpoint.h5'.format(domain, "mrcnn_{}{}run1_2".format(settings['run_label'], prev_id))
-            else:
+    if 'base' in settings:
+        if settings['base'] == 'coco':
+            COCO_MODEL_PATH = os.path.join(ROOT_DIR, "mask_rcnn_coco.h5")
+        elif settings['base'] == 'north':
+            if settings['continual'] == 0:
                 COCO_MODEL_PATH = '{}/{}/mrcnn_checkpoint.h5'.format(domain, "mrcnn_randsub{}run1_6".format(settings['base_id'])) # fixed for baltic
-    elif settings['base'] == 'baltic':
-        COCO_MODEL_PATH = '{}/{}/mrcnn_checkpoint.h5'.format(domain, "mrcnn_randfold{}run1_2".format(settings['base_id']) )
-    elif settings['base'] == 'none':
-        COCO_MODEL_PATH = ''
+            else:
+                if idr > 0:
+                    prev_id = idr - 1
+                    #COCO_MODEL_PATH = '{}/{}/mrcnn_checkpoint.h5'.format(domain, "mrcnn_in{}normalbasednorth{}run1_2".format(settings['base_id'], prev_id))
+                    COCO_MODEL_PATH = '{}/{}/mrcnn_checkpoint.h5'.format(domain, "mrcnn_{}{}run1_2".format(settings['run_label'], prev_id))
+                else:
+                    COCO_MODEL_PATH = '{}/{}/mrcnn_checkpoint.h5'.format(domain, "mrcnn_randsub{}run1_6".format(settings['base_id'])) # fixed for baltic
+        elif settings['base'] == 'baltic':
+            COCO_MODEL_PATH = '{}/{}/mrcnn_checkpoint.h5'.format(domain, "mrcnn_randfold{}run1_2".format(settings['base_id']) )
+        elif settings['base'] == 'none':
+            COCO_MODEL_PATH = ''
 
-    #prev_id = idr - 1
-    #COCO_MODEL_PATH = '{}/{}/mrcnn_checkpoint.h5'.format(domain, "mrcnn_in0reloadbasednorth{}run1_2".format(prev_id))
-    #COCO_MODEL_PATH = '{}/{}/mrcnn_checkpoint.h5'.format(domain, "mrcnn_randsub1run1_6")
-    #COCO_MODEL_PATH = ''
-    #COCO_MODEL_PATH = '{}/{}/mrcnn_checkpoint.h5'.format(domain, "mrcnn_randfold1run1_2")
-    if settings['base'] != 'none':
+        #prev_id = idr - 1
+        #COCO_MODEL_PATH = '{}/{}/mrcnn_checkpoint.h5'.format(domain, "mrcnn_in0reloadbasednorth{}run1_2".format(prev_id))
+        #COCO_MODEL_PATH = '{}/{}/mrcnn_checkpoint.h5'.format(domain, "mrcnn_randsub1run1_6")
+        #COCO_MODEL_PATH = ''
+        #COCO_MODEL_PATH = '{}/{}/mrcnn_checkpoint.h5'.format(domain, "mrcnn_randfold1run1_2")
+        if settings['base'] != 'none':
+            if mode == "both" or mode == 'train':
+                model.load_weights(COCO_MODEL_PATH, by_name=True,
+                           exclude=["mrcnn_class_logits", "mrcnn_bbox_fc", 
+                                    "mrcnn_bbox", "mrcnn_mask"])
+    else:
+        COCO_MODEL_PATH = os.path.join(ROOT_DIR, "mask_rcnn_coco.h5")
         if mode == "both" or mode == 'train':
             model.load_weights(COCO_MODEL_PATH, by_name=True,
                        exclude=["mrcnn_class_logits", "mrcnn_bbox_fc", 
                                 "mrcnn_bbox", "mrcnn_mask"])
-    
+
+
     with tf.device('/gpu:0'):
         if mode == "both" or mode == 'train':
             model.train(dataset, val, 
