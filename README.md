@@ -1,7 +1,7 @@
 AI_otolith -> Fish Age Reading using Object Detection and Segmentation
 
 
-To run the project, one can use either Command-Line or Web-based method (requires installation of the necessary packages and starting the development server). It is recommended to use the Command-line method at the moment as the full guide for the web-based method is still under development.
+To run the project, one can use either Command-Line or Web-based method (requires installation of the necessary packages and starting the development server).
 
 The following are the summarized steps for running the methods:
 
@@ -109,9 +109,11 @@ Mask R-CNN with the Baltic Sea Dataset:
         'source_dataset': 'datasets_north',
         }
     ````
-7. (Optional, WIP) For web-based usage (localhost), run "python manage.py runserver". Then, use the following URLs to perform experiments and customize the settings with GET parameters (e.g. ?dataset=datasets_baltic&run_type=test&run_label=randsub ...)
+7. For web-based usage (localhost), run "python manage.py runserver". Then, use the following URLs to perform experiments and customize the settings with GET parameters (e.g. ?dataset=datasets_baltic&run_type=test&run_label=randsub ...)
 
    * U-Net: localhost:8000/otoliths/experiments/run_unet/
 
    * Mask R-CNN: localhost:8000/otoliths/experiments/run_mrcnn/
+  
+   Alternatively, one can visit the experiments page (http://localhost:8000/demo/experiments/) for examples/demo of experimental setups used.
 
