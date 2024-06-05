@@ -72,7 +72,22 @@ def start_run_mrcnn(settings):
                     os.makedirs('{}/{}/output/'.format(settings['dataset'], name))
                 except:
                     pass
+                #---------------------------------------------
 
+                if 'multistage' in settings:
+                    if settings['multistage'] == 'outer':
+                        import mrcnn.mrcnn_main_multistage1 as mrcnn_setup
+                    elif settings['multistage'] == 'nucleus':
+                        import mrcnn.mrcnn_main_multistage2 as mrcnn_setup
+                    elif settings['multistage'] == 'annuli':
+                        import mrcnn.mrcnn_main_multistage3a as mrcnn_setup
+                    elif settings['multistage'] == 'measurement':
+                        import mrcnn.mrcnn_main_multistage3b as mrcnn_setup
+                elif 'mask_score' in settings:
+                    import mrcnn.mrcnn_main_metrics as mrcnn_setup
+                elif 'base' in settings:
+                    pass # handled by default code
+                
                 mrcnn_setup.train(
                     name=name, 
                     data_params=data_params, 

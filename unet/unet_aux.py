@@ -65,6 +65,101 @@ from mrcnn import utils
 from mrcnn import config
 
 
+def measure_prediction_output(domain, mask_item, cx, cy, dist_max, test_src=None, settings={}):
+    from skimage.morphology import skeletonize
+    contours, hierarchy = cv2.findContours(mask_item.copy(), cv2.RETR_LIST, cv2.CHAIN_APPROX_NONE)
+    contours = sorted(contours,key=cv2.contourArea, reverse=False)
+
+    if domain == 'datasets_north':
+        contours = [c for c in contours if cv2.contourArea(c) > 50 ]
+    else:
+        contours = [c for c in contours if cv2.contourArea(c) > 150 ]
+
+    sorted_c, alist = sort_contours(domain, mask_item, cx, cy )
+    label_list = []
+    for c in sorted_c:
+        cntr = c[0]
+        idx = c[2]
+        xpos = c[3]
+        ypos = c[4]
+        if domain != 'datasets_user':
+            if xpos > cx:
+                continue
+#         else:
+#             if xpos < cx:
+#                 continue
+        dist = c[1]
+        val = 1
+        key = 0
+        for label_item in label_list:
+            intersect, start_angle, end_angle = check_angle_intersection(label_item, c, alist)
+            if intersect:
+                val = label_item[0] + 1
+                key = label_item[1]    
+        label_list.append([val, idx, dist, c[0], xpos, ypos, cntr])
+
+    sorted_labels = sorted(label_list, key=lambda x: x[0])
+    try:
+        ai_reading = sorted_labels[-1][0]
+    except:
+        ai_reading = 0
+    print("ai reading")
+    if int(ai_reading) == 0:
+        return 0, []
+    
+    nr_cx = cx
+    nr_cy = cy
+    
+    all_right_points = []
+    all_left_points = []
+    for c_item in sorted_labels:
+        c = c_item[-1]
+        rr_M = cv2.moments(c)
+        rr_cx = int(rr_M["m10"] / rr_M["m00"])
+        rr_cy = int(rr_M["m01"] / rr_M["m00"])
+        if rr_cx > nr_cx:
+            dist = np.sqrt( (rr_cx-nr_cx)**2 + (rr_cy-nr_cy)**2 ) 
+            all_right_points.append( [rr_cx, rr_cy, dist])
+        else:
+            dist = np.sqrt( (rr_cx-nr_cx)**2 + (rr_cy-nr_cy)**2 ) 
+            all_left_points.append( [rr_cx, rr_cy, dist])
+
+    all_left_points = sorted(all_left_points, key=lambda x: x[2], reverse=False)
+    all_right_points = sorted(all_right_points, key=lambda x: x[2], reverse=False)
+    if len(all_right_points) == len(all_left_points):
+        if all_right_points[-1][2] >= all_left_points[-1][2]:
+            sorted_selected = all_right_points
+        else:
+            sorted_selected = all_left_points
+    else:
+        if len(all_left_points)> len(all_right_points):
+            sorted_selected = all_left_points
+        else:
+            sorted_selected = all_right_points
+    max_dist = sorted_selected[-1][2]
+    print("max_dist++++")
+    print(nr_cx, nr_cy)
+    print("center----")
+    all_dist = []
+    for side_idx, sorted_item in enumerate(sorted_selected):
+        curr_x, curr_y, _ = sorted_item
+        
+        if side_idx == 0:
+            next_x = nr_cx
+            next_y = nr_cy
+        else:
+            next_x, next_y, _ = sorted_selected[side_idx-1]
+
+        dist = np.sqrt( (curr_x-next_x)**2 + (curr_y-next_y)**2 )
+        print(curr_x, curr_y, dist)
+        print(next_x, next_y, "next")
+        all_dist.append(dist/max_dist)
+        print(dist, max_dist)
+    print(all_dist)
+            
+    return ai_reading, all_dist
+
+
 def ellipse_center(wh_cts):
     ellipse = cv2.fitEllipse(wh_cts)
     (ex,ey), (d1,d2), angle = ellipse
