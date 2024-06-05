@@ -259,6 +259,7 @@ def evaluate(name='unet', full_ring_type=False, data_params={}, settings={}):
     count_lines = []
 
     config = InferenceConfig()
+    test_ds = InferenceDataset()
 
     ff = glob.glob("{}/images_remain/*.png".format(domain))
     age_distances = {}
@@ -271,15 +272,6 @@ def evaluate(name='unet', full_ring_type=False, data_params={}, settings={}):
                     min_dim=config.IMAGE_MIN_DIM,
                     max_dim=config.IMAGE_MAX_DIM,
                     padding=True)
-        sqmaskraw, window, scale, padding = test_ds.resize_image(maskraw,
-                    min_dim=config.IMAGE_MIN_DIM,
-                    max_dim=config.IMAGE_MAX_DIM,
-                    padding=True)
-        
-        sqmaskraw = sqmaskraw.astype(np.uint8)
-        print(np.max(sqmaskraw))
-        print("sqmaskraw")
-        print(sqmaskraw.shape)
         
         img_gray = skimage.color.rgb2gray(sq_img)
         img = skimage.color.gray2rgb(img_gray)
@@ -306,6 +298,8 @@ def evaluate(name='unet', full_ring_type=False, data_params={}, settings={}):
         whole_ctr = max(ncontours, key=cv2.contourArea)
         x, y, w, h = cv2.boundingRect(whole_ctr)
 
-        ofs = 50
-        ythresh_raw = ythresh_copy[max([y-ofs,0]):min([y+h+ofs, ythresh_copy.shape[0]]), max([x-ofs,0]):min([x+w+ofs,ythresh_copy.shape[1]])]
-        cv2.imwrite("{}/{}/output/wmask_{}".format(domain, name, image_name), ythresh_raw*255)
+        with open("{}/{}/output/bbox_{}.json".format(domain, name, image_name), "w") as fout:
+            json.dump([x,y,w,h], fout, indent=4)
+            
+            
+            

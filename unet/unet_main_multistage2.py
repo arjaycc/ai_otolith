@@ -259,6 +259,7 @@ def evaluate(name='unet', full_ring_type=False, data_params={}, settings={}):
     count_lines = []
 
     config = InferenceConfig()
+    test_ds = InferenceDataset()
 
     ff = glob.glob("{}/images_remain/*.png".format(domain))
     age_distances = {}
@@ -280,18 +281,36 @@ def evaluate(name='unet', full_ring_type=False, data_params={}, settings={}):
                     min_dim=config.IMAGE_MIN_DIM,
                     max_dim=config.IMAGE_MAX_DIM,
                     padding=True)
-        sqmaskraw, window, scale, padding = test_ds.resize_image(maskraw,
-                    min_dim=config.IMAGE_MIN_DIM,
-                    max_dim=config.IMAGE_MAX_DIM,
-                    padding=True)
-        
-        sqmaskraw = sqmaskraw.astype(np.uint8)
-        print(np.max(sqmaskraw))
-        print("sqmaskraw")
-        print(sqmaskraw.shape)
 
+        # Mask R-CNN is better than U-Net so this part is NOT IMPLEMENTED for U-NET (for eval)
+        #predict_nucleus(sq_img)
+        img_gray = skimage.color.rgb2gray(sq_img)
+        img = skimage.color.gray2rgb(img_gray)
+        if CHANNELS == 1:
+            Z_test =  np.zeros( ( 1, config.IMAGE_MAX_DIM,config.IMAGE_MAX_DIM,1), dtype=np.float32)
+            Z_test[0,:,:,0] = img[:,:,0]
+        else:
+            Z_test =  np.zeros( ( 1, config.IMAGE_MIN_DIM,config.IMAGE_MIN_DIM,3), dtype=np.float32)
+            Z_test[0,:,:,:] = img
 
         # Mask R-CNN is better than U-Net so this part is NOT IMPLEMENTED for U-NET (for eval)
         #predict_nucleus(sq_img)
                 
+        preds_test = unet_model.model.predict(Z_test[0:1], verbose=1)
+        preds_test_t = (preds_test > 0.50).astype(np.uint8)
+        item =  preds_test_t[0].squeeze()
+        contours, hierarchy = cv2.findContours(item.copy(), cv2.RETR_LIST, cv2.CHAIN_APPROX_NONE)
+        main_contour, cx, cy = get_nucleus_position(contours)
+        print("nucleus: {},{}".format(cx,cy))
+        with open("{}/{}/output/center_{}.json".format(domain, name, image_name), "w") as fout:
+            json.dump([cx, cy], fout, indent=4)
+
+
+def get_nucleus_position(contours):
+    main_contour = max(contours, key=cv2.contourArea)
+    M = cv2.moments(main_contour)
+    x = int(M["m10"] / M["m00"])
+    y = int(M["m01"] / M["m00"])
+    return main_contour, x, y
+       
     

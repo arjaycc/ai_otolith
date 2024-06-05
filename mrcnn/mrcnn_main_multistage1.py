@@ -169,28 +169,65 @@ def train(name='mrcnn', data_params={}, edge_params={}, train_params={}, setting
                 min_dim=inference_config.IMAGE_MIN_DIM,
                 max_dim=inference_config.IMAGE_MAX_DIM,
             )
-            sqmaskraw = utils.resize_mask(maskraw, scale, padding)
-            sqmaskraw = sqmaskraw[sqmaskraw>=1].astype(np.uint8)
-
             print(image_name)
-            img_gray = skimage.color.rgb2gray(sq_img)
-            img = skimage.color.gray2rgb(img_gray)
-            if CHANNELS == 1:
-                Z_test =  np.zeros( ( 1, config.IMAGE_MAX_DIM,config.IMAGE_MAX_DIM,1), dtype=np.float32)
-                Z_test[0,:,:,0] = img[:,:,0]
-            else:
-                Z_test =  np.zeros( ( 1, config.IMAGE_MIN_DIM,config.IMAGE_MIN_DIM,3), dtype=np.float32)
-                Z_test[0,:,:,:] = img
-
-            preds_test = unet_model.model.predict(Z_test[0:1], verbose=1)
-            preds_test_t = (preds_test > 0.50).astype(np.uint8)
-            print(preds_test.shape)
-            ypred = preds_test_t[0].squeeze()
-            ythresh = np.zeros([ypred.shape[0], ypred.shape[1],1], dtype=np.uint8)
-            ythresh[:,:,0] = ypred[:,:]
-            whole_mask = cv2.dilate(ythresh, np.ones( (4,4), np.uint8 ), iterations=10)
-            ncontours, hierarchy = cv2.findContours(whole_mask.copy(), cv2.RETR_LIST, cv2.CHAIN_APPROX_NONE)
-            whole_ctr = max(ncontours, key=cv2.contourArea)
+            results = model.detect([sq_img], verbose=1)
+            r = results[0]
+            main_idx = get_main_detection(r, "outer")
+            boxes = r['rois']
+            scores = r['scores']
+            masks = r['masks']
+            print(scores)
+            try:
+                new_mask = masks[:,:,main_idx]
+            except:
+                print("except---------------")
+                with open("{}/{}/output/bbox_{}.json".format(domain, name, image_name), "w") as fout:
+                    json.dump([0, 0, int(config.IMAGE_MAX_DIM/2.0), int(config.IMAGE_MAX_DIM/2.0)], fout, indent=4)
+                continue
+            
+            new_mask = new_mask.astype(np.uint8)
+            new_mask = new_mask.squeeze()
+            ypred = new_mask.copy()
+            pthresh = np.zeros([ypred.shape[0], ypred.shape[1],1], dtype=np.uint8)
+            pthresh[:,:,0] = ypred[:,:]
+            pcontours, hierarchy = cv2.findContours(pthresh.copy(), cv2.RETR_LIST, cv2.CHAIN_APPROX_NONE)
+            pred_contour = max(pcontours, key=cv2.contourArea)
             x, y, w, h = cv2.boundingRect(whole_ctr)
             with open("{}/{}/output/bbox_{}.json".format(domain, name, image_name), "w") as fout:
-                json.dump([x,y,w,h], fout, indent=4)
+                json.dump([int(x/2.0),int(y/2.0),int(w/2.0),int(h/2.0)], fout, indent=4)
+                
+                
+def get_main_detection(ypred, region):
+    boxes = ypred['rois']
+    scores = ypred['scores']
+    masks = ypred['masks']
+    if region == 'nucleus':
+        max_score = 0
+        max_score_idx = 0 
+        for i in range(boxes.shape[0]):
+            val = scores[i]
+            if val > max_score:
+                max_score = val
+                max_score_idx = i
+                print("max_scoreeee: ", max_score)
+        return max_score_idx
+    else:
+        samp = masks[:,:,0]
+        h,w = samp.shape[:2]
+        midx = int(w/2.0)
+        midy = int(h/2.0)
+        print(samp.shape)
+        print(midx, midy)
+        nearest_dist = 99999
+        nearest_idx = 0
+        for i in range(boxes.shape[0]):
+            y1, x1, y2, x2 = boxes[i]
+            print(boxes[i])
+            bx = int((x1 + x2)/2.0)
+            by = int((y1 + y2)/2.0)
+            dist = math.hypot(bx-midx, by-midy)
+            print(dist)
+            if dist < nearest_dist:
+                nearest_dist = dist
+                nearest_idx = i
+        return nearest_idx

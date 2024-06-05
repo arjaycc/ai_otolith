@@ -163,22 +163,18 @@ def train(name='mrcnn', data_params={}, edge_params={}, train_params={}, setting
             print(imgfile)
             image_name = imgfile.replace("\\", "/").split("/")[-1]
             imgraw = skimage.io.imread("{}/images_remain/{}".format(domain,image_name))
-            maskraw = cv2.imread("{}/{}/output/wmask_{}".format(domain, settings['input_run1'], image_name) )
             with open("{}/{}/output/bbox_{}.json".format(domain, settings['input_run1'], image_name)) as fin:
                 bbox = json.load(fin)
                 print(bbox)
                 x,y,w,h = [int(bb) for bb in bbox]
                 ofs = 50
                 imgraw = imgraw[max([y-ofs,0]):min([y+h+ofs, imgraw.shape[0]]), max([x-ofs,0]):min([x+w+ofs,imgraw.shape[1]])]
-                skimage.io.imsave("{}/{}/output/rw_{}".format(domain, settings['input_run1'], image_name), imgraw)
 
             sq_img, window, scale, padding, _ = utils.resize_image(
                 imgraw, 
                 min_dim=inference_config.IMAGE_MIN_DIM,
                 max_dim=inference_config.IMAGE_MAX_DIM,
             )
-            sqmaskraw = utils.resize_mask(maskraw, scale, padding)
-            sqmaskraw = sqmaskraw[sqmaskraw>=1].astype(np.uint8)
 
             print(image_name)
             results = model.detect([sq_img], verbose=1)

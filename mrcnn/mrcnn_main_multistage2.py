@@ -163,23 +163,18 @@ def train(name='mrcnn', data_params={}, edge_params={}, train_params={}, setting
             print(imgfile)
             image_name = imgfile.replace("\\", "/").split("/")[-1]
             imgraw = skimage.io.imread("{}/images_remain/{}".format(domain,image_name))
-
-            maskraw = cv2.imread("{}/{}/output/wmask_{}".format(domain, settings['input_run1'], image_name) )
             with open("{}/{}/output/bbox_{}.json".format(domain, settings['input_run1'], image_name)) as fin:
                 bbox = json.load(fin)
                 print(bbox)
                 x,y,w,h = [int(bb) for bb in bbox]
                 ofs = 50
                 imgraw = imgraw[max([y-ofs,0]):min([y+h+ofs, imgraw.shape[0]]), max([x-ofs,0]):min([x+w+ofs,imgraw.shape[1]])]
-                skimage.io.imsave("{}/{}/output/rw_{}".format(domain, settings['input_run1'], image_name), imgraw)
 
             sq_img, window, scale, padding, _ = utils.resize_image(
                 imgraw, 
                 min_dim=inference_config.IMAGE_MIN_DIM,
                 max_dim=inference_config.IMAGE_MAX_DIM,
             )
-            sqmaskraw = utils.resize_mask(maskraw, scale, padding)
-            sqmaskraw = sqmaskraw[sqmaskraw>=1].astype(np.uint8)
             print(image_name)
 
             results = model.detect([sq_img], verbose=1)
@@ -210,3 +205,39 @@ def train(name='mrcnn', data_params={}, edge_params={}, train_params={}, setting
             coordy = int(nr_M["m01"] / nr_M["m00"])
             with open("{}/{}/output/center_{}.json".format(domain, name, image_name), "w") as fout:
                 json.dump([coordx, coordy], fout, indent=4)
+
+                
+def get_main_detection(ypred, region):
+    boxes = ypred['rois']
+    scores = ypred['scores']
+    masks = ypred['masks']
+    if region == 'nucleus':
+        max_score = 0
+        max_score_idx = 0 
+        for i in range(boxes.shape[0]):
+            val = scores[i]
+            if val > max_score:
+                max_score = val
+                max_score_idx = i
+                print("max_scoreeee: ", max_score)
+        return max_score_idx
+    else:
+        samp = masks[:,:,0]
+        h,w = samp.shape[:2]
+        midx = int(w/2.0)
+        midy = int(h/2.0)
+        print(samp.shape)
+        print(midx, midy)
+        nearest_dist = 99999
+        nearest_idx = 0
+        for i in range(boxes.shape[0]):
+            y1, x1, y2, x2 = boxes[i]
+            print(boxes[i])
+            bx = int((x1 + x2)/2.0)
+            by = int((y1 + y2)/2.0)
+            dist = math.hypot(bx-midx, by-midy)
+            print(dist)
+            if dist < nearest_dist:
+                nearest_dist = dist
+                nearest_idx = i
+        return nearest_idx

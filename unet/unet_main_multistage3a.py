@@ -259,6 +259,7 @@ def evaluate(name='unet', full_ring_type=False, data_params={}, settings={}):
     count_lines = []
 
     config = InferenceConfig()
+    test_ds = InferenceDataset()
 
     ff = glob.glob("{}/images_remain/*.png".format(domain))
     age_distances = {}
@@ -279,15 +280,6 @@ def evaluate(name='unet', full_ring_type=False, data_params={}, settings={}):
                     min_dim=config.IMAGE_MIN_DIM,
                     max_dim=config.IMAGE_MAX_DIM,
                     padding=True)
-        sqmaskraw, window, scale, padding = test_ds.resize_image(maskraw,
-                    min_dim=config.IMAGE_MIN_DIM,
-                    max_dim=config.IMAGE_MAX_DIM,
-                    padding=True)
-        
-        sqmaskraw = sqmaskraw.astype(np.uint8)
-        print(np.max(sqmaskraw))
-        print("sqmaskraw")
-        print(sqmaskraw.shape)
         
         img_gray = skimage.color.rgb2gray(sq_img)
         img = skimage.color.gray2rgb(img_gray)
