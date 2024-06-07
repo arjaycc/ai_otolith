@@ -163,7 +163,7 @@ def train(name='mrcnn', data_params={}, edge_params={}, train_params={}, setting
             print(imgfile)
             image_name = imgfile.replace("\\", "/").split("/")[-1]
             imgraw = skimage.io.imread("{}/images_remain/{}".format(domain,image_name))
-            with open("{}/{}/output/bbox_{}.json".format(domain, settings['input_run1'], image_name)) as fin:
+            with open("{}/{}/output/boundingbox_{}.json".format(domain, settings['input_run1'], image_name)) as fin:
                 bbox = json.load(fin)
                 print(bbox)
                 x,y,w,h = [int(bb) for bb in bbox]
@@ -179,7 +179,7 @@ def train(name='mrcnn', data_params={}, edge_params={}, train_params={}, setting
             print(image_name)
             results = model.detect([sq_img], verbose=1)
 
-            with open("{}/{}/output/center_{}.json".format(domain, settings['input_run2'],image_name)) as fin:
+            with open("{}/{}/output/nucleus_{}.json".format(domain, settings['input_run2'],image_name)) as fin:
                 cx, cy = json.load(fin)
             fname = image_name
             with open("total_map.json") as fin:

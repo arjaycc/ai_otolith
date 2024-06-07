@@ -268,8 +268,7 @@ def evaluate(name='unet', full_ring_type=False, data_params={}, settings={}):
         image_name = imgfile.replace("\\", "/").split("/")[-1]
         imgraw = skimage.io.imread("{}/images_remain/{}".format(domain,image_name))
 
-        maskraw = cv2.imread("{}/{}/output/wmask_{}".format(domain, settings['input_run1'], image_name) )
-        with open("{}/{}/output/bbox_{}.json".format(domain, settings['input_run1'], image_name)) as fin:
+        with open("{}/{}/output/boundingbox_{}.json".format(domain, settings['input_run1'], image_name)) as fin:
             bbox = json.load(fin)
             print(bbox)
             x,y,w,h = [int(bb) for bb in bbox]
@@ -294,7 +293,7 @@ def evaluate(name='unet', full_ring_type=False, data_params={}, settings={}):
         preds_test_t = (preds_test > 0.50).astype(np.uint8)
         print(preds_test.shape)
         item = preds_test_t[0].squeeze()
-        with open("{}/{}/output/center_{}.json".format(domain, settings['input_run2'],image_name)) as fin:
+        with open("{}/{}/output/nucleus_{}.json".format(domain, settings['input_run2'],image_name)) as fin:
             cx, cy = json.load(fin)
     
         cx = int(cx/2.0) # to downsize 1024 (Mrcnn output) to 512 (U-Net)

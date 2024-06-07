@@ -82,9 +82,9 @@ def measure_prediction_output(domain, mask_item, cx, cy, dist_max, test_src=None
         idx = c[2]
         xpos = c[3]
         ypos = c[4]
-        if domain != 'datasets_user':
-            if xpos > cx:
-                continue
+#         if domain != 'datasets_user':
+#             if xpos > cx:
+#                 continue
 #         else:
 #             if xpos < cx:
 #                 continue

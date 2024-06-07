@@ -268,15 +268,13 @@ def evaluate(name='unet', full_ring_type=False, data_params={}, settings={}):
         image_name = imgfile.replace("\\", "/").split("/")[-1]
         imgraw = skimage.io.imread("{}/images_remain/{}".format(domain,image_name))
 
-        maskraw = cv2.imread("{}/{}/output/wmask_{}".format(domain, settings['input_run1'], image_name) )
-        with open("{}/{}/output/bbox_{}.json".format(domain, settings['input_run1'], image_name)) as fin:
+        with open("{}/{}/output/boundingbox_{}.json".format(domain, settings['input_run1'], image_name)) as fin:
             bbox = json.load(fin)
             print(bbox)
             x,y,w,h = [int(bb) for bb in bbox]
             ofs = 50
             imgraw = imgraw[max([y-ofs,0]):min([y+h+ofs, imgraw.shape[0]]), max([x-ofs,0]):min([x+w+ofs,imgraw.shape[1]])]
-                
-
+            
         sq_img, window, scale, padding = test_ds.resize_image(imgraw,
                     min_dim=config.IMAGE_MIN_DIM,
                     max_dim=config.IMAGE_MAX_DIM,
@@ -302,7 +300,7 @@ def evaluate(name='unet', full_ring_type=False, data_params={}, settings={}):
         contours, hierarchy = cv2.findContours(item.copy(), cv2.RETR_LIST, cv2.CHAIN_APPROX_NONE)
         main_contour, cx, cy = get_nucleus_position(contours)
         print("nucleus: {},{}".format(cx,cy))
-        with open("{}/{}/output/center_{}.json".format(domain, name, image_name), "w") as fout:
+        with open("{}/{}/output/center512_{}.json".format(domain, name, image_name), "w") as fout:
             json.dump([cx, cy], fout, indent=4)
 
 

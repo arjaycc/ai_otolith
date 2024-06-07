@@ -285,21 +285,55 @@ def evaluate(name='unet', full_ring_type=False, data_params={}, settings={}):
         preds_test = unet_model.model.predict(Z_test[0:1], verbose=1)
         preds_test_t = (preds_test > 0.50).astype(np.uint8)
         print(preds_test.shape)
-        ypred = preds_test_t[0].squeeze()
         
-        
-        ythresh = np.zeros([ypred.shape[0], ypred.shape[1],1], dtype=np.uint8)
-        ythresh[:,:,0] = ypred[:,:]
-        ythresh_copy = ythresh.copy()
-        
-        
-        whole_mask = cv2.dilate(ythresh, np.ones( (4,4), np.uint8 ), iterations=10)
-        ncontours, hierarchy = cv2.findContours(whole_mask.copy(), cv2.RETR_LIST, cv2.CHAIN_APPROX_NONE)
-        whole_ctr = max(ncontours, key=cv2.contourArea)
-        x, y, w, h = cv2.boundingRect(whole_ctr)
+        metric_mode = True
+        if metric_mode:
+            item =  preds_test_t[0].squeeze()[window[0]:window[2],:]
+            ypred = cv2.resize(item, (imgraw.shape[1],imgraw.shape[0]) )
+            contours, hierarchy = cv2.findContours(ypred.copy(), cv2.RETR_LIST, cv2.CHAIN_APPROX_NONE)
+            main_contour = get_main_contour(contours, ypred, "outer")
+#             x, y, w, h = cv2.boundingRect(main_contour)
+            ythresh = np.zeros([ypred.shape[0], ypred.shape[1],1], dtype=np.uint8)
+            cv2.drawContours(ythresh, [main_contour], -1, 1, thickness=cv2.FILLED)
+            whole_mask = cv2.dilate(ythresh, np.ones( (4,4), np.uint8 ), iterations=10)
+            ncontours, hierarchy = cv2.findContours(whole_mask.copy(), cv2.RETR_LIST, cv2.CHAIN_APPROX_NONE)
+            whole_ctr = max(ncontours, key=cv2.contourArea)
+            x, y, w, h = cv2.boundingRect(whole_ctr)
+        else:
+            item = preds_test_t[0].squeeze()[window[0]:window[2],:]
+            ypred = cv2.resize(item, (imgraw.shape[1],imgraw.shape[0]) )
+            ythresh = np.zeros([ypred.shape[0], ypred.shape[1],1], dtype=np.uint8)
+            ythresh[:,:,0] = ypred[:,:]
+            ythresh_copy = ythresh.copy()
 
-        with open("{}/{}/output/bbox_{}.json".format(domain, name, image_name), "w") as fout:
+            whole_mask = cv2.dilate(ythresh, np.ones( (4,4), np.uint8 ), iterations=10)
+            ncontours, hierarchy = cv2.findContours(whole_mask.copy(), cv2.RETR_LIST, cv2.CHAIN_APPROX_NONE)
+            whole_ctr = max(ncontours, key=cv2.contourArea)
+            x, y, w, h = cv2.boundingRect(whole_ctr)
+
+        with open("{}/{}/output/boundingbox_{}.json".format(domain, name, image_name), "w") as fout:
             json.dump([x,y,w,h], fout, indent=4)
             
             
-            
+def get_main_contour(contours, ypred, region):
+    if region == 'nucleus':
+        return max(contours, key=cv2.contourArea)
+    ncontours = sorted(contours, key=cv2.contourArea, reverse=True)
+    ncontours = [c for c in ncontours if cv2.contourArea(c) > 300]
+    midx = int(ypred.shape[1]/2.0)
+    midy = int(ypred.shape[0]/2.0)
+    nearest_dist = 99999
+    nearest_idx = 0
+    for cidx, ctr in enumerate(ncontours[:3]):
+        M = cv2.moments(ctr)
+        x = int(M["m10"] / M["m00"])
+        y = int(M["m01"] / M["m00"])
+        dist = math.hypot(x-midx, y-midy)
+        if dist < nearest_dist:
+            nearest_dist = dist
+            nearest_idx = cidx
+    try:
+        c = ncontours[nearest_idx]
+    except:
+        c = max(contours, key=cv2.contourArea)
+    return c      

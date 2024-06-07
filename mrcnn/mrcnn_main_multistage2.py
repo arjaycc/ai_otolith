@@ -163,7 +163,7 @@ def train(name='mrcnn', data_params={}, edge_params={}, train_params={}, setting
             print(imgfile)
             image_name = imgfile.replace("\\", "/").split("/")[-1]
             imgraw = skimage.io.imread("{}/images_remain/{}".format(domain,image_name))
-            with open("{}/{}/output/bbox_{}.json".format(domain, settings['input_run1'], image_name)) as fin:
+            with open("{}/{}/output/boundingbox_{}.json".format(domain, settings['input_run1'], image_name)) as fin:
                 bbox = json.load(fin)
                 print(bbox)
                 x,y,w,h = [int(bb) for bb in bbox]
@@ -189,7 +189,7 @@ def train(name='mrcnn', data_params={}, edge_params={}, train_params={}, setting
             except:
                 print("except---------------")
                 coordx, coordy = (int(config.IMAGE_MAX_DIM/2.0), int(config.IMAGE_MAX_DIM/2.0))
-                with open("{}/{}/output/center_{}.json".format(domain, name, image_name), "w") as fout:
+                with open("{}/{}/output/nucleus_{}.json".format(domain, name, image_name), "w") as fout:
                     json.dump([coordx, coordy], fout, indent=4)
                 continue
 
@@ -203,7 +203,7 @@ def train(name='mrcnn', data_params={}, edge_params={}, train_params={}, setting
             nr_M = cv2.moments(pred_contour)
             coordx = int(nr_M["m10"] / nr_M["m00"])
             coordy = int(nr_M["m01"] / nr_M["m00"])
-            with open("{}/{}/output/center_{}.json".format(domain, name, image_name), "w") as fout:
+            with open("{}/{}/output/nucleus_{}.json".format(domain, name, image_name), "w") as fout:
                 json.dump([coordx, coordy], fout, indent=4)
 
                 
