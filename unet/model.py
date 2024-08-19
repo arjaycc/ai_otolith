@@ -97,6 +97,39 @@ class CheckpointSaver(keras.callbacks.Callback):
             self.best_val_loss = mean_val_loss
             print("saving checkpoint :{}".format(mean_val_loss) )
 
+class RehearsalPlotSaver(keras.callbacks.Callback):
+
+    def __init__(self, measurement='loss', name='unet', settings={}):
+        self.measurement = measurement
+        self.name = name
+        self.dataset = settings['dataset']
+        try:
+            self.new_items = settings['new_items']
+            self.old_items = settings['old_items']
+            self.save_fig = True
+        except:
+            self.save_fig = False
+ 
+    def on_train_begin(self, logs={}):
+        self.best_val_loss = 999999
+        self.val_losses = []
+        self.losses = []
+        self.count = 0
+        self.epoch_counts = []
+
+    def on_epoch_end(self, epoch, logs={}):
+        self.losses.append(logs.get('{}'.format(self.measurement)))
+        self.val_losses.append(logs.get('val_{}'.format(self.measurement)))
+        self.epoch_counts.append(self.count)
+        self.count += 1
+        if self.save_fig and self.count%10 == 0:
+            self.model.save("{}/{}/unet_{}_checkpoint.h5".format(self.dataset, self.name, self.count))
+            fig = plt.figure()
+            plt.plot(self.epoch_counts, self.losses, label="{}".format(self.measurement))
+            plt.plot(self.epoch_counts, self.val_losses, label="val_{}".format(self.measurement))
+            plt.legend()
+            fig.savefig("{}/{}/new_{}_old_{}_epoch{}.png".format(self.dataset, self.name, self.new_items, self.old_items, self.count))
+            
 
 def create_augmentation():
     aug = ImageDataGenerator(

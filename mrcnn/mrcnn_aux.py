@@ -38,6 +38,132 @@ sys.path.append(ROOT_DIR)
 from mrcnn import utils
 from mrcnn import config
 
+def measure_prediction_output(results, cx, cy, dist_max):
+    from skimage.morphology import skeletonize
+
+    r = results[0]
+
+    contours = []
+    for box in r['rois']:
+        y1, x1, y2, x2 = box
+        midx = int((x1+x2)/2.0)
+        midy = int((y1+y2)/2.0)
+        contours.append(box)
+
+    hlist = []
+    alist = []
+    for c in contours:
+        y1, x1, y2, x2 = c
+        hull = [(x1,y1), (x2,y2)]
+        angles = []
+        for item in hull:
+            x = item[0]
+            y = item[1]
+            test = np.arctan2(y-cy,x-cx)*180/np.pi
+            if test >= 0:
+                angle = (90+test)%360
+            else:
+                angle = (90+(360+test))%360
+            angles.append([x,y,angle])
+        angles = sorted(angles, key=lambda x: x[2])
+        alist.append(angles)
+        hlist.append(c)
+
+    clist = []
+    for idx,contour in enumerate(contours):
+        y1, x1, y2, x2 = contour
+        midx = int((x1+x2)/2.0)
+        midy = int((y1+y2)/2.0)
+        dist = ( (midx-cx)**2 + (midy-cy)**2 ) ** 0.5
+        clist.append([contour,dist, idx])
+
+    sorted_c = sorted(clist, key=lambda kx: kx[1], reverse=True)
+
+    labels = []
+    for c in sorted_c:
+        idx = c[2]
+        dist = c[1]
+        val = 1
+        key = 0
+        for label in labels:
+            intersect, start_angle, end_angle = check_angle_intersection(label, c, alist)
+            if intersect:
+                val = label[0] + 1
+                key = label[1]
+        labels.append([val, idx, dist, c  ])
+    label_list = [l[0:2] for l in labels]
+
+    try:
+        sorted_labels = sorted(label_list, key=lambda x: x[0])
+        ai_reading = sorted_labels[-1][0]
+    except:
+        ai_reading = 0
+        
+    if int(ai_reading)==0:
+        return 0, []
+    #------------------------------------------
+    
+    masks = r['masks']
+    nr_cx = cx
+    nr_cy = cy
+
+    all_right_points = []
+    all_left_points = []
+    for main_idx, box in enumerate(r['rois']):
+        try:
+            new_mask = masks[:,:,main_idx]
+        except:
+            continue
+
+        new_mask = new_mask.astype(np.uint8)
+        new_mask = new_mask.squeeze()
+        ypred = new_mask.copy()
+        pthresh = np.zeros([ypred.shape[0], ypred.shape[1],1], dtype=np.uint8)
+        pthresh[:,:,0] = ypred[:,:]
+        pcontours, hierarchy = cv2.findContours(pthresh.copy(), cv2.RETR_LIST, cv2.CHAIN_APPROX_NONE)
+
+        c = max(pcontours, key=cv2.contourArea)
+        
+        rr_M = cv2.moments(c)
+        rr_cx = int(rr_M["m10"] / rr_M["m00"])
+        rr_cy = int(rr_M["m01"] / rr_M["m00"])
+        
+        if rr_cx > nr_cx:
+            dist = np.sqrt( (rr_cx-nr_cx)**2 + (rr_cy-nr_cy)**2 ) 
+            all_right_points.append([rr_cx, rr_cy, dist])
+        else:
+            dist = np.sqrt( (rr_cx-nr_cx)**2 + (rr_cy-nr_cy)**2 ) 
+            all_left_points.append([rr_cx, rr_cy, dist])
+
+    all_left_points = sorted(all_left_points, key=lambda x: x[2], reverse=False)
+    all_right_points = sorted(all_right_points, key=lambda x: x[2], reverse=False)
+    if len(all_right_points) == len(all_left_points):
+        if all_right_points[-1][2] >= all_left_points[-1][2]:
+            sorted_selected = all_right_points
+        else:
+            sorted_selected = all_left_points
+    else:
+        if len(all_left_points)> len(all_right_points):
+            sorted_selected = all_left_points
+        else:
+            sorted_selected = all_right_points
+    max_dist = sorted_selected[-1][2]
+    all_dist = []
+    print("max_dist")
+    for side_idx, sorted_item in enumerate(sorted_selected):
+        curr_x, curr_y, _ = sorted_item
+        if side_idx == 0:
+            next_x = nr_cx
+            next_y = nr_cy
+        else:
+            next_x, next_y, _ = sorted_selected[side_idx-1]
+
+        dist = np.sqrt( (curr_x-next_x)**2 + (curr_y-next_y)**2 ) 
+        all_dist.append(dist/max_dist)
+        print(dist, max_dist)
+    print(all_dist)
+    
+    return ai_reading, all_dist
 
 def ellipse_center(wh_cts):
     ellipse = cv2.fitEllipse(wh_cts)

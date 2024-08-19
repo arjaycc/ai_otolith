@@ -85,11 +85,29 @@ def start_run_unet(settings):
                 except:
                     pass
 
+                #----- DIFFERENT RUN MODES -----------
+                if 'multistage' in settings:
+                    if settings['multistage'] == 'outer':
+                        import unet.unet_main_multistage1 as unet_setup
+                    elif settings['multistage'] == 'nucleus':
+                        import unet.unet_main_multistage2 as unet_setup
+                    elif settings['multistage'] == 'annuli':
+                        import unet.unet_main_multistage3a as unet_setup
+                    elif settings['multistage'] == 'measurement':
+                        import unet.unet_main_multistage3b as unet_setup
+                elif 'mask_score' in settings:
+                    import unet.unet_main_metrics as unet_setup
+                elif 'base' in settings:
+                    pass # handled by default code
+                elif 'old_items' in settings: # rehearsal
+                    import unet.unet_main_rehearsal as unet_setup
+                
                 if settings['run_type'] == 'train' or settings['run_type'] == 'both':
                     unet_setup.train(name=name, data_params=data_params, unet_params=unet_params, train_params=train_params, settings=settings)
 
                 if settings['run_type'] == 'test' or settings['run_type'] == 'both':
                     unet_setup.evaluate(name=name, full_ring_type=fr, data_params=data_params, settings=settings)
+
 
 
 def run_unet(request):
