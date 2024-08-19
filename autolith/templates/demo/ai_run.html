@@ -8,7 +8,9 @@
 
 {% block container %}
 
-
+{% if existing_results %}
+  <p>Detected existing result: <a href="/demo/results/?dataset={{dataset}}&folder={{folder}}&fname={{existing_results}}">{{ existing_results}}</a></p>
+{% endif %}
 <form role="form" method="post" action="/demo/start_run/" class="col-8">
     
   {% csrf_token %} 

@@ -6,7 +6,7 @@
 {% block stylesheets %}{% endblock stylesheets %}
 
 
-{% block container %}
+{% block content %}
 
 
 {% if user_uploaded %}
@@ -29,7 +29,30 @@
         <p>Baltic Sea: <a href="https://doi.org/10.5281/zenodo.8341149">https://doi.org/10.5281/zenodo.8341149</a></p>
         {% endif %}
       {% endif %}
-      <a href="."><h3>Click an Image For Additional Annotation Options</h3></a>
+      <h3>Click an Image For Additional Annotation Options</h3>
+      <form action='&page=2' method='GET'>
+        <input type="submit" name="next" value="NEXT">
+      </form>
+    <form action='.' method='GET'>
+        <select name="aimethod" onchange="this.form.submit()"> Select AI method:
+            {% if current_ai_method == 'unet' %}
+            <option style="width: 50px;">Mask-RCNN</option>
+            <option style="width: 50px;" selected>U-Net</option>
+            {% else %}
+            <option style="width: 50px;" selected>Mask-RCNN</option>
+            <option style="width: 50px;">U-Net</option>
+            {% endif %}
+        </select>
+        <select name="weights"> Select Model Weights:
+            {% for model in all_models %}
+            <option style="width: 50px;">{{ model }}</option>
+            {% endfor %}
+        </select>
+        <input type="submit" name="aiprocess" value="TRAIN">
+        <input type="submit" name="aiprocess" value="PREDICT">
+    </form>
+
+
     {% else %}
         <form action="." method="post">
           <input type="text" name="split_name" value="{{ folder }}" hidden>
@@ -39,26 +62,36 @@
     {% endif %}
 {% endif %}
 
-
-{% if user_uploaded %}
-    <ul>
-    {% for image in images %}
-        <li style="display: inline-block; margin: 5px;">
-            <img style="width: 200px; height: 200px; margin: 5px;" src="{% static ''|add:folder|add:'/'|add:image %}">
-        </li>
-    {% endfor %}
-    </ul>
+{% if with_preds %}
+        <ul>
+        {% for image in images %}
+            <li style="display: inline-block; margin: 5px;">
+                <a href="{{ image }}"><img style="width: 200px; height: 200px; margin: 5px;" src="{% static 'data/mrcnn_annuli/'|add:folder|add:'/'|add:image %}"></a>
+            </li>
+        {% endfor %}
+        </ul>
 {% else %}
-    <ul>
-    {% for image in images %}
-        <li style="display: inline-block; margin: 5px;">
-            <a href="{{ image }}"><img style="width: 200px; height: 200px; margin: 5px;" src="{% static ''|add:folder|add:'/'|add:image %}"></a>
-        </li>
-    {% endfor %}
-    </ul>
+    {% if user_uploaded %}
+        <ul>
+        {% for image in images %}
+            <li style="display: inline-block; margin: 5px;">
+                <img style="width: 200px; height: 200px; margin: 5px;" src="{% static ''|add:folder|add:'/'|add:image %}">
+            </li>
+        {% endfor %}
+        </ul>
+    {% else %}
+        <ul>
+        {% for image in images %}
+            <li style="display: inline-block; margin: 5px;">
+                <a href="{{ image }}"><img style="width: 200px; height: 200px; margin: 5px;" src="{% static ''|add:folder|add:'/'|add:image %}"></a>
+            </li>
+        {% endfor %}
+        </ul>
+    {% endif %}
+
 {% endif %}
 
-{% endblock container %}
+{% endblock content %}
 
 
 
