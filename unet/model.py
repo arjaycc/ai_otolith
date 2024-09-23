@@ -129,7 +129,7 @@ class RehearsalPlotSaver(keras.callbacks.Callback):
             plt.plot(self.epoch_counts, self.val_losses, label="val_{}".format(self.measurement))
             plt.legend()
             fig.savefig("{}/{}/new_{}_old_{}_epoch{}.png".format(self.dataset, self.name, self.new_items, self.old_items, self.count))
-            
+
 
 def create_augmentation():
     aug = ImageDataGenerator(
@@ -313,21 +313,22 @@ class UNetModel:
             if settings['base'] == 'none':
                 TRANSFER = False
                 CHANNELS = 1
-                pass
             elif settings['base'] == 'vgg':
                 TRANSFER = True
                 CHANNELS = 3
-                pass
             elif settings['base'] == 'north':
                 TRANSFER = True
                 CHANNELS = 3
-                pass
             elif settings['base'] == 'baltic':
                 TRANSFER = False
                 CHANNELS = 1
-                pass
             else:
-                pass
+                try:
+                    TRANSFER = settings['transfer']
+                    CHANNELS = settings['channels']
+                except:
+                    TRANSFER = False
+                    CHANNELS = 1
 
         else:
             try:
@@ -504,7 +505,7 @@ class UNetModel:
                     if settings['idr'] > 0:
                         prev_id = settings['idr'] - 1
                         preload_name = "unet_{}{}run1_37".format(settings['run_label'], prev_id) 
-                        COCO_MODEL_PATH = '{}/{}/{}_checkpoint.h5'.format(settings['dataset'], preload_name, preload_name)
+                        self.model.load_weights("{}/{}/{}_checkpoint.h5".format(settings['dataset'], preload_name, preload_name))
                     else:
                         preload_name = "unet_randsub{}run1_47".format(settings['base_id'])
                         self.model.load_weights("{}/{}/{}_checkpoint.h5".format(settings['dataset'], preload_name, preload_name))
@@ -513,7 +514,11 @@ class UNetModel:
                 preload_name = "unet_randfold{}run1_37".format(settings['base_id'])
                 self.model.load_weights("{}/{}/{}_checkpoint.h5".format(settings['dataset'], preload_name, preload_name))
             else:
-                raise ValueError('not supported')
+                try:
+                    print(settings['base'])
+                    self.model.load_weights(settings['base'])
+                except:
+                    raise #ValueError('not supported')
         #for layer in self.model.layers:
         #    layer.trainable = True
         self.model.compile(optimizer=optimizer, metrics=metrics)

@@ -14,9 +14,9 @@
     <h4>Step 1</h4>
     <form action="." method="post" class="card"><input type="submit" name="mode" value="Detect Outer Contour"><input type="text" name="alpha" value="1.5" hidden></form>
     <!-- <form action="." method="post" class="card"><input type="submit" name="mode" value="Edit Outer Contour"></form> -->
-    <a href="?mode=Annotate" onclick="return !window.open(this.href, 'test', '')" target="_blank"><button style="width: 100%;">Edit Outer Contour</button></a>
+    <a href="?mode=Annotate" onclick="return !window.open(this.href, 'test', '')" target="_blank"><button class="item-full">Edit Outer Contour</button></a>
     <h4>Step 2</h4>
-    <form action="." method="post" class="card"><input type="submit" name="mode" value="Scale Image using Contour/Create Training Set (Working Set)"><input type="text" name="scale" value="1.0" hidden></form>
+    <form action="." method="post" class="card"><input type="submit" name="mode" value="Scale Image using Contour and Create Training Set"><input type="text" name="scale" value="1.0" hidden></form>
 </div>
 {% else %}
     {% if with_images %}
@@ -29,44 +29,83 @@
         <p>Baltic Sea: <a href="https://doi.org/10.5281/zenodo.8341149">https://doi.org/10.5281/zenodo.8341149</a></p>
         {% endif %}
       {% endif %}
-      <h3>Click an Image For Additional Annotation Options</h3>
-      <form action='&page=2' method='GET'>
-        <input type="submit" name="next" value="NEXT">
-      </form>
-    <form action='.' method='GET'>
-        <select name="aimethod" onchange="this.form.submit()"> Select AI method:
-            {% if current_ai_method == 'unet' %}
-            <option style="width: 50px;">Mask-RCNN</option>
-            <option style="width: 50px;" selected>U-Net</option>
+        {% if json_files and is_training %}
+            {% if is_training %}
+                <br>
+                <h3>Number of Annotation Files Detected: {{json_files|length }}</h3>
+                <!-- <h3 onclick="update_image_list()">List of Annotation Files Detected:</h3> -->
+                <ul>
+                    {% for json_file in json_files %}
+                    <!-- <li>{{ json_file }}</li> -->
+                    {% endfor %}
+                </ul>
+                <a href="?mode=annuli_annotate&split_name={{ folder.0 }}&annotype=current" onclick="return !window.open(this.href, 'test', '')" target="_blank"><button class="item-full">View/Edit Annotation</button></a>
             {% else %}
-            <option style="width: 50px;" selected>Mask-RCNN</option>
-            <option style="width: 50px;">U-Net</option>
+                <h3>Test Prediction</h3>
             {% endif %}
-        </select>
-        <select name="weights"> Select Model Weights:
-            {% for model in all_models %}
-            <option style="width: 50px;">{{ model }}</option>
-            {% endfor %}
-        </select>
-        <input type="submit" name="aiprocess" value="TRAIN">
-        <input type="submit" name="aiprocess" value="PREDICT">
-    </form>
+        {% else %}
+
+            {% if is_training %}
+              <h3>Create Annotation First</h3>
+
+              <form action='&page=2' method='GET'>
+                  <input type="submit" name="next" value="Manual Tool">
+              </form>
+              <form action='&page=2' method='GET'>
+                  <input type="submit" name="next" value="AI-Assisted Tool">
+              </form>
+
+            {% else %}
+              <h3>Test Prediction</h3>
+            {% endif %}
+        {% endif %}
+        
+        <h3>AI-Methods</h3>
+        <form action='.' method='GET' class="item-full">
+            <select name="aimethod" onchange="this.form.submit()"> Select AI method:
+                {% if current_ai_method == 'unet' %}
+                <option>Mask-RCNN</option>
+                <option selected>U-Net</option>
+                {% else %}
+                <option selected>Mask-RCNN</option>
+                <option>U-Net</option>
+                {% endif %}
+            </select>
+            <select name="weights"> Select Model Weights:
+                {% for model in all_models %}
+                <option>{{ model }}</option>
+                {% endfor %}
+            </select>
+            <!-- <input type="submit" name="aiprocess" value="TRAIN"> -->
+            <input type="submit" name="aiprocess" value="PREDICT"  class="item-full">
+        </form>
 
 
     {% else %}
-        <form action="." method="post">
-          <input type="text" name="split_name" value="{{ folder }}" hidden>
-          <input type="text" name="image_scale" value="1" hidden>
-          <input type="submit" name="process" value="Load Images">
-        </form>    
+        {% if folder != 'images' and json_files %}
+            <form action="." method="post">
+              <input type="text" name="split_name" value="{{ folder }}" hidden>
+              <input type="text" name="image_scale" value="1" hidden>
+              <input type="submit" name="process" value="Load Images from Detected Annotation File">
+            </form>
+            <br>
+            <h3>Number of Annotation Files Detected: {{json_files|length }} </h3>
+            <ul>
+                {% for json_file in json_files %}
+                <!-- <li>{{ json_file }}</li> -->
+                {% endfor %}
+            </ul>
+        {% else %}
+            <p>No images</p>
+        {% endif %}
     {% endif %}
 {% endif %}
 
 {% if with_preds %}
         <ul>
         {% for image in images %}
-            <li style="display: inline-block; margin: 5px;">
-                <a href="{{ image }}"><img style="width: 200px; height: 200px; margin: 5px;" src="{% static 'data/mrcnn_annuli/'|add:folder|add:'/'|add:image %}"></a>
+            <li class="image-li">
+                <a href="{{ image }}"><img class="image-sq" src="{% static 'data/'|add:current_ai_method|add:'_annuli/'|add:folder|add:'/'|add:image %}"></a>
             </li>
         {% endfor %}
         </ul>
@@ -74,16 +113,20 @@
     {% if user_uploaded %}
         <ul>
         {% for image in images %}
-            <li style="display: inline-block; margin: 5px;">
-                <img style="width: 200px; height: 200px; margin: 5px;" src="{% static ''|add:folder|add:'/'|add:image %}">
+            <li class="image-li">
+                <img class="image-sq" src="{% static ''|add:folder|add:'/'|add:image %}">
             </li>
         {% endfor %}
         </ul>
     {% else %}
         <ul>
         {% for image in images %}
-            <li style="display: inline-block; margin: 5px;">
-                <a href="{{ image }}"><img style="width: 200px; height: 200px; margin: 5px;" src="{% static ''|add:folder|add:'/'|add:image %}"></a>
+            <li class="image-li">
+                  <a href="{{ image }}"><img id="{{ image }}" class="image-sq" src="{% static 'data/'|add:dataset|add:'/'|add:folder|add:'/'|add:image %}"></a>
+        
+                  <!-- <a href="{{ image }}"><img id="{{ image }}" style="width: 200px; height: 200px; margin: 5px;" src="{% static ''|add:folder|add:'/'|add:image %}"></a> -->
+           
+                <!-- <a href="{{ image.0 }}"><img id="{{ image.0 }}" style="width: 200px; height: 200px; margin: 5px;" src="{{ image.1 }}"></a> -->
             </li>
         {% endfor %}
         </ul>
@@ -97,7 +140,6 @@
 
 <!-- Specific Page JS goes HERE  -->
 {% block javascripts %}
-
 
 
 {% endblock javascripts %}

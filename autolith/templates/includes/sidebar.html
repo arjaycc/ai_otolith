@@ -1,6 +1,7 @@
+
     <div class="sidebar" data-color="purple" data-background-color="white" data-image="/static/assets/img/sidebar-1.jpg">
       <div class="logo">
-        <a href="#" class="simple-text logo-normal">
+        <a href="/" class="simple-text logo-normal">
           Otolith Dataset
         </a>
       </div>
@@ -52,14 +53,6 @@
           </li>
           
 
-
-          <li class="nav-item">
-            <a class="nav-link" href="/demo/experiments/">
-              <i class="material-icons">bubble_chart</i>
-              <p>Demo Experiments</p>
-            </a>
-          </li>
-
           <li class="nav-item">
             <a class="nav-link" href="/otoliths/northsea/">
               <i class="material-icons">bubble_chart</i>
@@ -81,8 +74,6 @@
             </a>
           </li>
           
-        
-          
           <li class="nav-item ">
             <a class="nav-link" href="{% url 'logout' %}" >
               <i class="material-icons">directions_run</i>
@@ -92,83 +83,85 @@
 
           {% else %}
           <li class="nav-item ">
-            <a class="nav-link" href="{% url 'login' %}" >
-              <i class="material-icons">directions_run</i>
-              <p>Login</p>
-            </a>
-
-          </li>
-          <li class="nav-item">
-            <a class="nav-link" href="/demo/experiments/">
-              <i class="material-icons">content_paste</i>
-              <p>Demo</p>
-            </a>
-          </li>
-
-          <li class="nav-item">
-            <a class="nav-link" href="/demo/show_data/">
-              <i class="material-icons">content_paste</i>
-              <p>Datasets North</p>
-            </a>
-          </li>
-
-
-          <li class="nav-item">
-            <a class="nav-link" href="/demo/show_data/">
-              <i class="material-icons">content_paste</i>
-              <p>Datasets Baltic</p>
-            </a>
-          </li>
-
-
-          <li class="nav-item">
-            <a class="nav-link" href="/demo/show_runs/">
-              <i class="material-icons">content_paste</i>
-              <p>Models</p>
-            </a>
-          </li>
-
-
-          <li class="nav-item">
-            <a class="nav-link" href="/demo/show_data/">
-              <i class="material-icons">content_paste</i>
+            <a class="nav-link" href="/demo/index/">
+              <i class="material-icons">dashboard</i>
               <p>Images</p>
             </a>
           </li>
 
+          <li class="nav-item">
+            <a class="nav-link" href="/demo/dataview/">
+              <i class="material-icons">content_paste</i>
+              <p>Getting Started</p>
+            </a>
+          </li>
 
+          
+
+          <li class="nav-item">
+            <a class="nav-link" href="/otoliths/map/">
+              <i class="material-icons">location_ons</i>
+              <p>Sampling Stations</p>
+            </a>
+          </li>
+
+          <li class="nav-item">
+            <a class="nav-link annotation_tool" href="/demo/index/">
+              <i class="material-icons">person</i>
+              <p>Annotation Tool</p>
+            </a>
+          </li>
 
           <li class="nav-item">
             <a class="nav-link" href="/demo/experiments/">
+              <i class="material-icons">library_books</i>
+              <p>Experiments</p>
+            </a>
+          </li>
+
+          <li class="nav-item">
+            <a class="nav-link" href="/demo/upload/">
               <i class="material-icons">content_paste</i>
-              <p>Train Existing</p>
+              <p>Upload Data</p>
+            </a>
+          </li>
+
+          <li class="nav-item">
+            <a class="nav-link" href="/demo/dataview/datasets_user/">
+              <i class="material-icons">bubble_chart</i>
+              <p>User Uploaded Images</p>
+            </a>
+          </li>
+
+          <li class="nav-item">
+            <a class="nav-link" href="/demo/dataview/datasets_north/">
+              <i class="material-icons">bubble_chart</i>
+              <p>North Sea Images</p>
+            </a>
+          </li>
+
+          <li class="nav-item">
+            <a class="nav-link" href="/demo/dataview/datasets_baltic/">
+              <i class="material-icons">bubble_chart</i>
+              <p>Baltic Sea Images</p>
             </a>
           </li>
 
 
           <li class="nav-item">
-            <a class="nav-link" href="/demo/experiments/">
-              <i class="material-icons">content_paste</i>
-              <p>Test Existing</p>
+            <a class="nav-link" href="/demo/ai/">
+              <i class="material-icons">language</i>
+              <p>AI Predictions</p>
             </a>
           </li>
 
-
-
-          <li class="nav-item">
-            <a class="nav-link" href="/demo/show_data/">
-              <i class="material-icons">content_paste</i>
-              <p>Train New</p>
+          
+          <li class="nav-item ">
+            <a class="nav-link" href="{% url 'logout' %}" >
+              <i class="material-icons">directions_run</i>
+              <p>Logout</p>
             </a>
           </li>
-
-          <li class="nav-item">
-            <a class="nav-link" href="/demo/show_data/">
-              <i class="material-icons">content_paste</i>
-              <p>Test New</p>
-            </a>
-          </li>
-
 
           {% endif %}
         </ul>

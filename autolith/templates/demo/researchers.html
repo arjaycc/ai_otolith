@@ -374,7 +374,7 @@ ul.region_shape .selected { fill:#ffffff; stroke:#ff0000; }
         <ul>
           <!-- <li onclick="javascript:window.close('','_parent','');" style="cursor:pointer;">Home</li> -->
           <li style="cursor:pointer;"><a href="/">Home</a></li>
-          <li style="cursor:pointer;"><a href="{{ fname}}?process=Segment&mode={{ mode }}">{{ mode|capfirst }}</a></li>
+          <li style="cursor:pointer;"><a href="?mode={{ mode }}&folder={{ folder }}&split_name={{ folder }}&annotype={{ annotype }}&drawing_tool={{ drawing_tool }}">{{ drawing_tool|capfirst }}</a></li>
           <!-- <li style="cursor:pointer;"><a href="{{ fname}}?process=Segment&mode={{ mode }}&convert=1">Convert</a></li> -->
           <li>Project
             <ul>
@@ -1403,13 +1403,16 @@ function download_as_image() {
                        '_via_img_metadata': _via_img_metadata,
                        '_via_attributes': _via_attributes,
                        '_via_data_format_version': '2.0.10',
+                       'dataformat': '{{ dataformat }}',
+                       'dataset': '{{ dataset }}',
+                       'folder': '{{ folder }}',
                        '_via_image_id_list': _via_image_id_list
                      };
 
   // console.log(JSON.stringify(_via_project));
 
   var xhttp = new XMLHttpRequest();
-  xhttp.open("POST", "/interact/", true);
+  xhttp.open("POST", "/demo/interact/", true);
   xhttp.setRequestHeader("X-CSRFToken", csrftoken); 
   xhttp.setRequestHeader('Content-Type', 'application/json');
   // xhttp.send(JSON.stringify(
@@ -8182,13 +8185,17 @@ function project_save_confirmed(input) {
                        '_via_img_metadata': _via_img_metadata,
                        '_via_attributes': _via_attributes,
                        '_via_data_format_version': '2.0.10',
+                       'dataformat': '{{ dataformat }}',
+                       'dataset': '{{ dataset }}',
+                       'folder': '{{ folder }}',
                        '_via_image_id_list': _via_image_id_list
                      };
 
   // console.log(JSON.stringify(_via_project));
 
   var xhttp = new XMLHttpRequest();
-  xhttp.open("POST", "/interact/", true);
+  xhttp.open("POST", "/demo/interact/", true);
+  xhttp.setRequestHeader("X-CSRFToken", csrftoken); 
   xhttp.setRequestHeader('Content-Type', 'application/json');
   // xhttp.send(JSON.stringify(
   //     {test: 1}

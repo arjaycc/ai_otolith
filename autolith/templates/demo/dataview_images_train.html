@@ -1,0 +1,69 @@
+{% extends "base.html" %}
+{% load static %}
+{% load custom_tags %}
+{% block title %} <h2>Folder: {{ folder }}</h2> {% endblock %} 
+
+<!-- Specific Page CSS goes HERE  -->
+{% block stylesheets %}{% endblock stylesheets %}
+
+
+{% block content %}
+
+<a href="/demo/dataview/{{ dataset }}/"><button class="btn-secondary item-link-10">Go back</button></a> 
+<a href="/demo/dataview/{{ dataset }}/{{ folder }}/?current_task=train"><button class="btn-secondary item-link-10">Refresh</button></a>
+<span class="item-empty"></span>
+<a {% if page_obj.has_previous %} href="?{% load_url_full page=page_obj.previous_page_number %}" {% endif %}><button class="btn-secondary item-link-5" {% if not page_obj.has_previous %} disabled {% endif %}> << </button></a>
+<span>Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}</span>
+<a {% if page_obj.has_next %} href="?{% load_url_full page=page_obj.next_page_number %}" {% endif %}><button class="btn-secondary item-link-5" {% if not page_obj.has_next %} disabled {% endif %}> >> </button></a>
+<br>
+
+
+<form action='.' method='GET' class="item-full">
+    <h3 class="item-left">Run Label (alphanumeric):</h3>
+    <input type="text" name="run_label" value="{{ current_label }}" class="item-right" >
+    <h3 class="item-left">AI-Method:</h3>
+
+    <select name="aimethod" onchange="this.form.submit()" class="item-right" >
+        {% if current_ai_method == 'unet' %}
+        <option>Mask R-CNN</option>
+        <option selected>U-Net</option>
+        {% else %}
+        <option selected>Mask R-CNN</option>
+        <option>U-Net</option>
+        {% endif %}
+    </select>
+
+    <br>
+    <h3 class="item-left">Transfer Learning Weights:</h3>
+
+    <select name="weights" class="item-right" > 
+        {% for model in all_models %}
+        <option value="{{ model }}">{{ model }}</option>
+        {% endfor %}
+    </select>
+
+    <input type="text" name="dataset" value="{{ dataset }}" hidden>
+    <input type="text" name="folder" value="{{ folder }}" hidden>
+    <input type="text" name="split_name" value="{{ folder }}" hidden>
+    <input type="text" name="current_task" value="{{ current_task }}" hidden>
+
+    <h3 class="item-left">Start Process:</h3>
+    <input class="btn-secondary item-right" type="submit" name="aitrain" value="START MODEL TRAINING">
+</form>
+
+
+
+{% for image in images %}
+    <li class="image-li">
+          <a href="{{ image }}"><img id="{{ image }}" class="image-sq" src="{% static 'data/'|add:dataset|add:'/'|add:folder|add:'/'|add:image %}"></a>
+    </li>
+{% endfor %}
+
+{% endblock content %}
+
+
+
+<!-- Specific Page JS goes HERE  -->
+{% block javascripts %}
+
+{% endblock javascripts %}

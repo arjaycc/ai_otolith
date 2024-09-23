@@ -2144,8 +2144,9 @@ pre code {
 }
 
 .form-control {
-  display: block;
-  width: 100%;
+  display: inline-block;
+  float: right;
+  width: 70%;
   padding: 0.4375rem 0;
   font-size: 1rem;
   line-height: 1.5;
@@ -2292,6 +2293,8 @@ select.form-control-lg:not([size]):not([multiple]),
 .form-group {
   margin-bottom: 1rem;
 }
+
+
 
 .form-text {
   display: block;

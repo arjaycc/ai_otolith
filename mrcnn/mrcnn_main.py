@@ -98,6 +98,8 @@ def train(name='mrcnn', data_params={}, edge_params={}, train_params={}, setting
             COCO_MODEL_PATH = '{}/{}/mrcnn_checkpoint.h5'.format(domain, "mrcnn_randfold{}run1_2".format(settings['base_id']) )
         elif settings['base'] == 'none':
             COCO_MODEL_PATH = ''
+        else:
+            COCO_MODEL_PATH = settings['base']
 
         #prev_id = idr - 1
         #COCO_MODEL_PATH = '{}/{}/mrcnn_checkpoint.h5'.format(domain, "mrcnn_in0reloadbasednorth{}run1_2".format(prev_id))

@@ -429,6 +429,7 @@ ul.region_shape .selected { fill:#ffffff; stroke:#ff0000; }
         <ul>
           <!-- <li onclick="show_home_panel()" style="cursor:pointer;">Home</li> -->
           <li style="cursor:pointer;"><a href="/">Home</a></li>
+          <li style="cursor:pointer;"><a href="?mode={{ mode }}&folder={{ folder }}&split_name={{ folder }}&annotype={{ annotype }}&drawing_tool={{ drawing_tool }}">{{ drawing_tool|capfirst }}</a></li>
           <li>Project
             <ul>
               <li onclick="project_open_select_project_file()" title="Load a VIA project (from a JSON file)">Load</li>
@@ -1636,13 +1637,16 @@ function download_as_image() {
                        '_via_img_metadata': _via_img_metadata,
                        '_via_attributes': _via_attributes,
                        '_via_data_format_version': '2.0.10',
+                       'dataformat': '{{ dataformat }}',
+                       'dataset': '{{ dataset }}',
+                       'folder': '{{ folder }}',
                        '_via_image_id_list': _via_image_id_list
                      };
 
   // console.log(JSON.stringify(_via_project));
 
   var xhttp = new XMLHttpRequest();
-  xhttp.open("POST", "/interact/", true);
+  xhttp.open("POST", "/demo/interact/", true);
   xhttp.setRequestHeader("X-CSRFToken", csrftoken); 
   xhttp.setRequestHeader('Content-Type', 'application/json');
   // xhttp.send(JSON.stringify(
@@ -8620,7 +8624,8 @@ function project_save_with_confirm() {
                 //                'save_images':{type:'checkbox', 'name':'Save images <span class="warning">(WARNING: only recommended for projects containing small number of images)</span>', value:false},
               };
 
-  invoke_with_user_inputs(project_save_confirmed, input, config);
+  // invoke_with_user_inputs(project_save_confirmed, input, config);
+  project_save_confirmed(input, config);
 }
 
 function project_save_confirmed(input) {
@@ -8649,13 +8654,17 @@ function project_save_confirmed(input) {
                        '_via_img_metadata': _via_img_metadata,
                        '_via_attributes': _via_attributes,
                        '_via_data_format_version': '2.0.10',
+                       'dataformat': '{{ dataformat }}',
+                       'dataset': '{{ dataset }}',
+                       'folder': '{{ folder }}',
                        '_via_image_id_list': _via_image_id_list
                      };
 
   // console.log(JSON.stringify(_via_project));
 
   var xhttp = new XMLHttpRequest();
-  xhttp.open("POST", "/interact/", true);
+  xhttp.open("POST", "/demo/interact/", true);
+  xhttp.setRequestHeader("X-CSRFToken", csrftoken); 
   xhttp.setRequestHeader('Content-Type', 'application/json');
   // xhttp.send(JSON.stringify(
   //     {test: 1}

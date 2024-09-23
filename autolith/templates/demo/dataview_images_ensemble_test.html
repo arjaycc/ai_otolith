@@ -1,0 +1,70 @@
+{% extends "base.html" %}
+{% load static %}
+{% load custom_tags %}
+{% block title %} <h2>Folder: {{ folder }}</h2> {% endblock %} 
+
+<!-- Specific Page CSS goes HERE  -->
+{% block stylesheets %}{% endblock stylesheets %}
+
+
+{% block content %}
+
+<a href="/demo/dataview/{{ dataset }}/"><button class="btn-secondary item-link-10">Go back</button></a> 
+<a href="/demo/dataview/{{ dataset }}/{{ folder }}/?current_task=ensemble_test"><button class="btn-secondary item-link-10">Refresh</button></a>
+<span class="item-empty"></span>
+<a {% if page_obj.has_previous %} href="?{% load_url_full page=page_obj.previous_page_number %}" {% endif %}><button class="btn-secondary item-link-5" {% if not page_obj.has_previous %} disabled {% endif %}> << </button></a>
+<span>Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}</span>
+<a {% if page_obj.has_next %} href="?{% load_url_full page=page_obj.next_page_number %}" {% endif %}><button class="btn-secondary item-link-5" {% if not page_obj.has_next %} disabled {% endif %}> >> </button></a>
+<br>
+
+{% if error_found %}
+
+<h3 class="text-red item-right">Problem encountered: Missing constituent predictions!</h3>
+
+{% endif %}
+
+<form action='.' method='GET' class="item-full">
+
+    <h3 class="item-left"><a href="/demo/dataview/{{ dataset }}/{{ folder }}/?current_task=test">Constituent Predictions </a> (as required by the selected ensemble model):</h3>
+
+    <select multiple name="weights"  class="item-right"> 
+        {% for model_file in all_models %}
+        <option  value="{{ model_file }}" selected>{{ model_file }}</option>
+        {% endfor %}
+    </select>
+
+    <a href="/demo/dataview/{{ dataset }}/{{ folder }}/?current_task=test" class="item-left">[Link to generate required predictions]</a>
+    <br>
+
+
+
+    <h3 class="item-left">Current Ensemble Models:</h3>
+    <select name="weights" class="item-right"> 
+        {% for ensemble in ensemble_list %}
+        <option value="{{ ensemble }}">{{ ensemble }}</option>
+        {% endfor %}
+    </select>
+
+    <input type="text" name="current_task" value="{{ current_task }}" hidden>
+
+
+    <h3 class="item-left">Start Process:</h3>
+    <input class="btn-secondary item-right" type="submit" name="ensemble_prediction" value="START ENSEMBLE TESTING">
+</form>
+
+
+
+{% for image in images %}
+    <li class="image-li">
+          <a href="{{ image }}"><img id="{{ image }}" class="image-sq" src="{% static 'data/'|add:dataset|add:'/'|add:folder|add:'/'|add:image %}"></a>
+    </li>
+{% endfor %}
+
+{% endblock content %}
+
+
+
+<!-- Specific Page JS goes HERE  -->
+{% block javascripts %}
+
+{% endblock javascripts %}

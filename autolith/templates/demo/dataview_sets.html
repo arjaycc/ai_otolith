@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 
-{% block title %} <h2>Section: {{ dataset|capfirst }} Datasets</h2> {% endblock %} 
+{% block title %} <h2>Domain: {{ dataset }}</h2> {% endblock %} 
 
 <!-- Specific Page CSS goes HERE  -->
 {% block stylesheets %}{% endblock stylesheets %}
@@ -8,14 +8,7 @@
 
 {% block content %}
 
-  {% if dataset != 'datasets_user' %}
-    <h4>Important! Download zenodo data and unzip images to {{ dataset }}/images/ </h4>
-    {% if dataset == 'datasets_north' %}
-    <p>North Sea: <a href="https://doi.org/10.5281/zenodo.8341092">https://doi.org/10.5281/zenodo.8341092</a></p>
-    {% else %}
-    <p>Baltic Sea: <a href="https://doi.org/10.5281/zenodo.8341149">https://doi.org/10.5281/zenodo.8341149</a></p>
-    {% endif %}
-  {% endif %}
+
   <hr>
   <form role="form" method="get" action="." class="col-5">
       
@@ -31,7 +24,7 @@
     </div>
     <span class="text-danger">{{ form.subset.errors }}</span>
 
-    <button type="submit" name="mode" value="0" class="btn pull-left">Filter</button>
+    <button type="submit" name="filter" value="0" class="btn pull-left">Filter</button>
 
     <div class="clearfix"></div>
 
@@ -45,16 +38,13 @@
       <thead class=" text-primary">
 
         <th>
-          Name
+          Training folder name
         </th>
         <th>
-          With Images
+          Pre-requisites
         </th>
         <th>
-          With Validation
-        </th>
-        <th>
-         With Annotations
+          Annotations
         </th>
         <th>
          AI Methods
@@ -65,67 +55,55 @@
       {% for folder in folders %}
         <tr>
 
-            <td>
+            <td class="foldername">
                 <a href="{{ folder.0 }}"><h3>{{ folder.0 }}</h3></a>
             </td>
-            <td>
-              <h3>{{ folder.1 }}</h3>
-<!--                 {% if folder.1 %}
-                <h3>{{ folder.1 }}</h3>
-                {% else %}
-                <span>False</span>
-                <form action="." method="post">
-                  <input type="text" name="split_name" value="{{ folder.0 }}" hidden>
-                  <input type="text" name="image_scale" value="1" hidden>
-                  <input type="submit" name="process" value="Load Images">
-                </form> 
-                {% endif %} -->
-            </td>
-            <td>
-              <h3>{{ folder.2 }}</h3>
-                {% if folder.2 %}
-                {% else %}
-                    {% if folder.1 and folder.3 %}
-                    <form action="." method="post" >
-                      <input type="text" name="split_name" value="{{ folder.0 }}" hidden>
-                      <input type="text" name="proportion" value="1" hidden>
-                      <input type="submit" name="process" value="Create-Validation">
-                    </form> 
-                    {% else %}
-                    <span>Create Annotations for Training Set First</span>
-                    {% endif %}
-                {% endif %}
-
-            </td>
-            <td>
-              <h3>{{ folder.3 }}</h3>
-<!--                 {% if folder.2 %}
-                True
-                {% else %}
-                  {% if folder.3 %}
-                  <form action="." method="post"><input type="submit" name="action" value="Create Annotation" disabled="disabled"></form> 
+            <td class="with_valid">
+              {% if folder.1 %}
+                  <h3>Raw Data</h3>
+              {% else %}
+                  {% if folder.2 %}
+                      <a href="{{ folder.2 }}"><h3>{{ folder.2 }}</h3></a>
                   {% else %}
-                  <form action="." method="post"><input type="submit" name="action" value="Create Annotation"></form> 
+                    {% if folder.5 %}
+                      <form action="." method="post" class="bottom-comp">
+                        <input type="text" name="split_name" value="{{ folder.0 }}" hidden>
+                        <input type="text" name="proportion" value="1" hidden>
+                        <input type="text" name="process" value="Create-Validation" hidden>
+                        <button class="btn-secondary item-right" type="submit">Create validation images</button>
+                      </form> 
+                    {% elif folder.3 %}
+                      <a href="{{ folder.0 }}"><button class="btn-secondary item-right">Load training images</button></a>
+                    {% else %}
+                      <a href="{{ folder.0 }}/?current_task=annotate"><button class="btn-secondary item-right">Create training annotations</button></a>
+                    {% endif %}
                   {% endif %}
-                {% endif %} -->
+              {% endif %}
+            </td>
+            <td class="with_annotation">
+              {% if folder.1 %}
+                  <h3>Raw Data</h3>
+              {% else %}
+
+                  {% if not folder.4 %}
+                    <h4 class="text-red">Missing Requirement</h4>
+                  {% endif %}
+                  <a href="{{ folder.0 }}/?current_task=annotate"><button {% if folder.4 %} class="btn-secondary item-right" {% else %} class="item-right" disabled {% endif %}>Create/Edit/View Annotations</button></a>
+              {% endif %}
             </td>
             <td>
-                <form action="." method="post">
-                  <input type="text" name="split_name" value="{{ folder.0 }}" hidden>
-                  <!-- {% if folder.3 %} -->
-                  <input type="submit" name="action" value="Train on {{ folder.0  }}" {% if not folder.4 %} disabled="disabled"{% endif %}>
-<!--                   {% else %}
-                  <input type="submit" name="action" value="Train on {{ folder.0  }}">
-                  {% endif %} -->
-                </form> 
-                <form action="." method="post">
-                  <input type="text" name="split_name" value="{{ folder.0 }}" hidden>
-                  <!-- {% if folder.3 %} -->
-                  <input type="submit" name="action" value="Predict images not in {{ folder.0  }}" {% if not folder.4 %} disabled="disabled"{% endif %}>
-<!--                   {% else %}
-                  <input type="submit" name="action" value="Predict images not in {{ folder.0  }}">
-                  {% endif %} -->
-                </form> 
+              {% if folder.1 %}
+                  <h3>Raw Data</h3>
+              {% else %}
+                  {% if not folder.4 %}
+                    <h4 class="text-red">Missing Requirement!</h4>
+                  {% endif %}
+                  <a href="{{ folder.0 }}/?current_task=train"><button {% if folder.4 %} class="btn-secondary item-btn-list" {% else %} class="item-btn-list" disabled {% endif %}>Train (U-Net/MRCNN)</button></a>
+                  <a href="{{ folder.0 }}/?current_task=test"><button {% if folder.4 %} class="btn-secondary item-btn-list" {% else %} class="item-btn-list" disabled {% endif %}>Predict (U-Net/MRCNN)</button></a>
+                  <a href="{{ folder.0 }}/?current_task=ensemble_train"><button {% if folder.4 %} class="btn-secondary item-btn-list" {% else %} class="item-btn-list" disabled {% endif %}>Train (Ensemble)</button></a>
+                  <a href="{{ folder.0 }}/?current_task=ensemble_test"><button {% if folder.4 %} class="btn-secondary item-btn-list" {% else %} class="item-btn-list" disabled {% endif %}>Predict (Ensemble)</button></a>
+
+               {% endif %}
             </td>
 
          </tr>

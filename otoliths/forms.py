@@ -68,6 +68,11 @@ class RunFormPhase1(forms.Form):
         self.fields['dataset'].choices = [('datasets_north', 'datasets_north'), ('datasets_baltic', 'datasets_baltic'), ('datasets_user', 'datasets_user')]
         self.fields['run_type'].choices = [('test', 'test'), ('train', 'train'), ('both', 'both')]
 
+    # def clean(self):
+    #     cleaned_data = self.cleaned_data
+    #     self.add_error('run_label', 'test error')
+    #     return cleaned_data
+
 class RunFormPhase2(forms.Form):
     method = forms.ChoiceField(choices=[])
     dataset = forms.ChoiceField(choices=[], widget=forms.Select(attrs={"class": "form-control"}))

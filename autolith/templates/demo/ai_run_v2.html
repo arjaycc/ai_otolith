@@ -15,11 +15,13 @@
     
   {% csrf_token %} 
 
-
+  <span>IMPORTANT!!! The image dataset uploaded in zenodo needs to be downloaded first</span>
+  <br>
+  <br>
   <div class="row">
     <div class="col-md-12">
       <div class="form-group">
-        <label class="label">Method</label>
+        <span class="label">Method</span>
         {{ form.method }}
       </div>
     </div>
@@ -29,8 +31,10 @@
   <div class="row">
     <div class="col-md-12">
       <div class="form-group">
-        <label class="label">Dataset (Note: for testing, image dataset uploaded in zenodo needs to be downloaded first)</label>
+        <span class="label">Dataset </span>
         {{ form.dataset }}
+
+        
       </div>
     </div>
   </div>
@@ -39,8 +43,9 @@
   <div class="row">
     <div class="col-md-12">
       <div class="form-group">
-        <label class="label">Run Type (Note: for testing, model dataset uploaded in zenodo needs to be downloaded first)</label>
+        <span class="label">Run Type </span>
         {{ form.run_type }}
+        
       </div>
     </div>
   </div>
@@ -49,7 +54,7 @@
   <div class="row">
     <div class="col-md-12">
       <div class="form-group">
-        <label class="label">Run Label</label>
+        <span class="label">Run Label</span>
         {{ form.run_label }}
       </div>
     </div>
@@ -59,7 +64,7 @@
   <div class="row">
     <div class="col-md-12">
       <div class="form-group">
-        <label class="label">Run ID</label>
+        <span class="label">Run ID</span>
         {{ form.idr }}
       </div>
     </div>
@@ -69,7 +74,7 @@
   <div class="row">
     <div class="col-md-12">
       <div class="form-group">
-        <label class="label">Split Name</label>
+        <span class="label">Split Name</span>
         {{ form.split_name }}
       </div>
     </div>
@@ -79,7 +84,7 @@
   <div class="row">
     <div class="col-md-12">
       <div class="form-group">
-        <label class="label">Selected Parameter ID</label>
+        <span class="label">Selected Parameter ID</span>
         {{ form.selected }}
       </div>
     </div>
@@ -91,7 +96,7 @@
   <div class="row">
     <div class="col-md-12">
       <div class="form-group">
-        <label class="label">Continual</label>
+        <span class="label">Continual</span>
         {{ form.continual }}
       </div>
     </div>
@@ -102,7 +107,7 @@
   <div class="row">
     <div class="col-md-12">
       <div class="form-group">
-        <label class="label">Base Weight/Model</label>
+        <span class="label">Base Weight/Model</span>
         {{ form.base }}
       </div>
     </div>
@@ -112,7 +117,7 @@
   <div class="row">
     <div class="col-md-12">
       <div class="form-group">
-        <label class="label">Base ID</label>
+        <span class="label">Base ID</span>
         {{ form.base_id }}
       </div>
     </div>
@@ -123,7 +128,7 @@
   <div class="row">
     <div class="col-md-12">
       <div class="form-group">
-        <label class="label">Source Domain</label>
+        <span class="label">Source Domain</span>
         {{ form.source_dataset }}
       </div>
     </div>
@@ -133,7 +138,7 @@
   <div class="row">
     <div class="col-md-12">
       <div class="form-group">
-        <label class="label">Evaluate Selected Set</label>
+        <span class="label">Evaluate Selected Set</span>
         {{ form.eval_balanced_set }}
       </div>
     </div>

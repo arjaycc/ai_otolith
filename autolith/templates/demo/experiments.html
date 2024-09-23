@@ -8,139 +8,58 @@
 
 {% block container %}
 
-<h3> Getting Started (Existing datasets) </h3>
-<ul>
-    <li>
-         <a href="/demo/index">How to test existing models</a>
-    </li>
 
-    <li>
-         <a href="/demo/experiments/transfer">How to retrain models</a>
-    </li>
-</ul>
-
-<h3> Getting Started (Own datasets) </h3>
-<ul>
-    <li>
-         <a href="/demo/index">How to upload</a>
-    </li>
-
-    <li>
-         <a href="/demo/experiments/transfer">How to train own model</a>
-    </li>
-</ul>
-
-
-<h3> LINKS </h3>
 <ul>
 
+    <h3> GUI EXPERIMENTS</h3>
+
+
+
+    <h3>Transfer Learning (Guide/Sample Run)</h3>
+
     <li>
-         <a href="/demo/index">Basic</a>
+         <a href="/demo/dataview/datasets_user/train_sample_1/?current_task=train&aimethod=U-Net&current_model=test0">Training the model with weights from (unet_test0run1_47)</a>
     </li>
 
     <li>
-         <a href="/demo/experiments/transfer">Transfer</a>
-    </li>
-
-    <li>
-         <a href="/demo/experiments/ensemble">Ensemble</a>
-    </li>
-
-    <li>
-         <a href="/demo/experiments/continual">Continual</a>
-    </li>
-
-</ul>
-
-<br>
-<ul>
-
-
-
-    <br>
-    <h5> (SOME) PRE-DEFINED RUN SETUPS</h5>
-
-    <li>
-         <a href="/demo/unet_setup/?dataset=datasets_baltic&base=north&base_id=0&split_name=ex0kfold&run_label=0exkfoldbasednorth&selected=37">Test U-Net Transfer Learning K-Fold (Baltic Test, BaseWeight=NorthModel, BaseWeightSourceID=0, RunIdentifier=0) </a>
-    </li>
-
-    <li>
-         <a href="/demo/mrcnn_setup/?dataset=datasets_baltic&base=north&base_id=0&split_name=ex0kfold&run_label=ex0kfoldbasednorth&selected=2">Test Mask R-CNN Transfer Learning K-Fold (Baltic Test, BaseWeight=NorthModel, BaseWeightSourceID=0, RunIdentifier=0) </a>
-    </li>
-
-
-    <li>
-         <a href="/demo/unet_setup/?dataset=datasets_baltic&base=north&base_id=0&split_name=ex0combined&run_label=ex0combobasednorth&selected=37">Test U-Net Transfer Learning Combined Folds (Baltic Test, BaseWeight=NorthModel, BaseWeightSourceID=0, RunIdentifier=0) </a>
-    </li>
-
-    <li>
-         <a href="/demo/mrcnn_setup/?dataset=datasets_baltic&base=north&base_id=0&split_name=ex0combined&run_label=ex0combobasednorth&selected=2">Test Mask R-CNN Transfer Learning Combined Folds (Baltic Test, BaseWeight=NorthModel, BaseWeightSourceID=0, RunIdentifier=0) </a>
-    </li>
-
-
-
-    <li>
-         <a href="/demo/unet_setup/?dataset=datasets_baltic&base=north&base_id=0&split_name=in0kfold&run_label=in0normalbasednorth&selected=37">Test U-Net Continual Learning without Rehearsal (Baltic Test, BaseWeight=NorthModel, BaseWeightSourceID=0, RunIdentifier=0) </a>
-    </li>
-
-    <li>
-         <a href="/demo/mrcnn_setup/?dataset=datasets_baltic&base=north&base_id=0&split_name=in0kfold&run_label=in0normalbasednorth&selected=2">Test Mask R-CNN Continual Learning without Rehearsal (Baltic Test, BaseWeight=NorthModel, BaseWeightSourceID=0, RunIdentifier=0) </a>
-    </li>
-
-
-    <li>
-         <a href="/demo/unet_setup/?dataset=datasets_baltic&base=north&base_id=0&split_name=in0retain&run_label=in0retainbasednorth&selected=37">Test U-Net Continual Learning with Rehearsal (Baltic Test, BaseWeight=NorthModel, BaseWeightSourceID=0, RunIdentifier=0) </a>
-    </li>
-
-    <li>
-         <a href="/demo/mrcnn_setup/?dataset=datasets_baltic&base=north&base_id=0&split_name=in0retain&run_label=in0retainbasednorth&selected=2">Test Mask R-CNN Continual Learning with Rehearsal (Baltic Test, BaseWeight=NorthModel, BaseWeightSourceID=0, RunIdentifier=0) </a>
+         <a href="/demo/dataview/datasets_user/train_sample_2/?current_task=test&aimethod=U-Net&current_model=test1">Testing the model (unet_test1run1_47)</a>
     </li>
 
     <br>
-    <h5>(SOME) ENSEMBLE RUN SETUPS</h5>
+
+
+    <h3>Ensemble Learning (Guide/Sample Run)</h3>
 
     <li>
-         <a href="/demo/ensemble/datasets_ensemble/north/">Test Ensemble Learning (North Sea Dataset) </a>
+         <a href="/demo/dataview/datasets_user/train_sample_0/?current_task=ensemble_train&aimethod=RandomForest&current_ensemble=RandomForest">Training ensemble (RandomForest) with 3 constituents</a>
     </li>
+
     <li>
-         <a href="/demo/ensemble/datasets_ensemble/baltic/">Test Ensemble Learning (Baltic Sea Dataset) </a>
+         <a href="/demo/dataview/datasets_user/train_sample_1/?current_task=ensemble_test&aimethod=RandomForest&current_model=sample_0&current_ensemble=RandomForest">Testing the ensemble (RandomForest)</a>
+    </li>
+    <br>
+
+    <h3>Continual Learning (Guide/Sample Run)</h3>
+
+
+    <li>
+         <a href="/demo/dataview/datasets_user/train_sample_0/?current_task=train&aimethod=U-Net&current_label=testcontinual&current_model=test0">Stage 1 Training </a>
     </li>
 
+    <li>
+         <a href="/demo/dataview/datasets_user/train_sample_1/?current_task=train&aimethod=U-Net&current_label=testcontinualnext&current_model=testcontinual0">Stage 2 Training</a>
+    </li>
 
+    <li>
+         <a href="/demo/dataview/datasets_user/train_sample_2/?current_task=train&aimethod=U-Net&current_label=testcontinualfinal&current_model=testcontinualnext">Stage 3 Training</a>
+    </li>
 
     <br>
-    <h5>Transfer Learning</h5>
+    <h3>ALTERNATIVE (OLDER GUI) PRE-DEFINED RUN SETUPS</h3>
 
     <li>
-         <a href="/demo/#">How to select base model for transfer learning </a>
+         <a href="/demo/experiments/textbased/">CLICK HERE</a>
     </li>
-
-    <br>
-    <h5>Ensemble Learning</h5>
-
-    <li>
-         <a href="/demo/#">Selecting the runsets to be used for ensemble learning</a>
-    </li>
-
-    <br>
-    <h5>Continual Learning</h5>
-
-    <li>
-         <a href="/demo/#">Creating stages for training</a>
-    </li>
-
-    <li>
-         <a href="/demo/#">Run Stage 1 (base)</a>
-    </li>
-
-    <li>
-         <a href="/demo/#">Run Stage 2 (preload Stage 1 model)</a>
-    </li>
-    <li>
-         <a href="/demo/#">Run Stage 3 (preload Stage 2 model)</a>
-    </li>
-
-
 
 </ul>
 

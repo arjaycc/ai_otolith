@@ -8,9 +8,9 @@
 
 {% block container %}
 <div>
-    <form action="{{ image_name }}" method="GET" style="display: inline-block;"><input type="submit" name="process" value="U-Net Segmentation">
+    <form action="{{ image_name }}" method="GET" class="item-inline"><input type="submit" name="process" value="U-Net Segmentation">
       <select name="weights">
-          <option style="width: 20px;">{{ sample_model_unet }}</option>
+          <option>{{ sample_model_unet }}</option>
       </select>
     </form>
     <span> ||| </span>
@@ -24,9 +24,9 @@
     <!-- <form action="{{ image_name }}" method="GET" style="display: inline-block;"><input type="submit" name="process" value="AI-Assisted Annotation"></form> -->
 </div>
 <div>
-    <form action="{{ image_name }}" method="GET" style="display: inline-block;"><input type="submit" name="process" value="Mask R-CNN Detection">
+    <form action="{{ image_name }}" method="GET" class="item-inline"><input type="submit" name="process" value="Mask R-CNN Detection">
       <select name="weights">
-          <option style="width: 20px;">{{ sample_model_mrcnn }}</option>
+          <option>{{ sample_model_mrcnn }}</option>
       </select>
     </form>
     <span> ||| </span>
@@ -40,8 +40,19 @@
     <a href="?process=Brighten with Background Removal">Brighten+Remove Background</a>
     <!-- <form action="{{ image_name }}" method="GET" style="display: inline-block;"><input type="submit" name="process" value="Brighten with Background Removal"></form> -->
 </div>
-<div class="img-wrapper" style="display: inline-block; width: 800px; margin: 2px;">
-    <img style="width: 800px; height: 800px; margin: 5px;" src="{% static 'detail/'|add:image_name %}">
+<div class="img-wrapper image-wrap-big">
+  {% if current_process == 'unet' %}
+<img class="image-sq-big" src="{% static 'data/unet_annuli'|add:'/'|add:folder|add:'/'|add:image_name %}">
+  {% elif current_process == 'mrcnn' %}
+<img class="image-sq-big" src="{% static 'data/mrcnn_annuli'|add:'/'|add:folder|add:'/'|add:image_name %}">
+  {% elif current_process == 'preproc' %}
+<img class="image-sq-big" src="{% static 'detail/'|add:image_name %}">
+  {% else %}
+<img class="image-sq-big" src="{% static 'data/'|add:dataset|add:'/'|add:folder|add:'/'|add:image_name %}">
+<!-- <img style="width: 800px; height: 800px; margin: 5px;" src="{% static 'data/unet_annuli'|add:'/'|add:folder|add:'/'|add:image_name %}"> -->
+  {% endif %}
+    
+
 </div>
 
 

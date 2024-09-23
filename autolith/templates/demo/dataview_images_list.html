@@ -1,0 +1,99 @@
+{% extends "base.html" %}
+{% load static %}
+{% load custom_tags %}
+{% block title %} <h2>Folder: {{ folder }}</h2> {% endblock %} 
+
+<!-- Specific Page CSS goes HERE  -->
+{% block stylesheets %}{% endblock stylesheets %}
+
+
+{% block content %}
+
+
+
+
+
+
+<a href="/demo/dataview/{{ dataset }}/"><button class="btn-secondary item-link-10">Go back</button></a> 
+<a href="/demo/dataview/{{ dataset }}/{{ folder }}/?current_task=list"><button class="btn-secondary item-link-10">Refresh</button></a>
+<span class="item-empty"></span>
+<a {% if page_obj.has_previous %} href="?{% load_url_full page=page_obj.previous_page_number %}" {% endif %}><button class="btn-secondary item-link-5" {% if not page_obj.has_previous %} disabled {% endif %}> << </button></a>
+<span>Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}</span>
+<a {% if page_obj.has_next %} href="?{% load_url_full page=page_obj.next_page_number %}" {% endif %}><button class="btn-secondary item-link-5" {% if not page_obj.has_next %} disabled {% endif %}> >> </button></a>
+<br>
+
+{% if user_uploaded %}
+<div>
+    
+    <form action="." method="post" >
+        <h3 class="item-left">Step 1:</h3>
+        <input class="btn-secondary item-right" type="submit" name="mode" value="Detect Outer Contour"><input type="text" name="alpha" value="1.5" hidden>
+    </form>
+    <!-- <form action="." method="post" class="card"><input type="submit" name="mode" value="Edit Outer Contour"></form> -->
+
+    <h3 class="item-left">Step 2:</h3>
+    <a href="?mode=Annotate" onclick="return !window.open(this.href, 'test', '')" target="_blank"><button class="btn-secondary item-right">Edit Outer Contour</button></a>
+
+    
+    <form action="." method="post" >
+        <br>
+        <h3 class="item-left">Step 3:</h3>
+        <input class="btn-secondary item-right" type="submit" name="mode" value="Scale Image using Contour and Create Training Set"><input type="text" name="scale" value="1.0" hidden>
+    </form>
+</div>
+
+{% else %}
+    {% if not images %}
+        {% if folder != 'images' and json_files %}
+            <form action="." method="post">
+              <input type="text" name="split_name" value="{{ folder }}" hidden>
+              <input type="text" name="image_scale" value="1" hidden>
+              <br>
+              <h3 class="item-left">Step 1:</h3>
+              <input class="btn-secondary item-right" type="submit" name="process" value="Load Training Images from Detected Annotation File">
+            </form>
+            <br>
+            <h3>Number of Annotation Files Detected: {{json_files|length }} </h3>
+            <ul>
+                {% for json_file in json_files %}
+                <!-- <li>{{ json_file }}</li> -->
+                {% endfor %}
+            </ul>
+        {% else %}
+            <br>
+            <h3>Missing requirement: No annotation nor images</h3>
+        {% endif %} 
+
+    {% else %}
+        {% if folder|slice:":5" == 'train' %}
+            <h3 class="item-left">Task:</h3>
+            <a href="/demo/dataview/{{ dataset }}/{{ folder }}/?current_task=annotate"><button class="btn-secondary item-right">Go to Annotation Page</button></a>
+        {% endif %}
+    {% endif %}
+{% endif %}
+
+{% if with_preds %}
+        <ul>
+        {% for image in images %}
+            <li class="image-li">
+                <a href="{{ image }}"><img class="image-sq" src="{% static 'data/'|add:with_preds|add:'/'|add:folder|add:'/'|add:image %}"></a>
+            </li>
+        {% endfor %}
+        </ul>
+{% else %}
+    {% for image in images %}
+        <li class="image-li">
+              <a href="{{ image }}"><img id="{{ image }}" class="image-sq" src="{% static 'data/'|add:dataset|add:'/'|add:folder|add:'/'|add:image %}"></a>
+        </li>
+    {% endfor %}
+{% endif %}
+
+
+{% endblock content %}
+
+
+
+<!-- Specific Page JS goes HERE  -->
+{% block javascripts %}
+
+{% endblock javascripts %}

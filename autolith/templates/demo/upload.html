@@ -9,41 +9,72 @@
 {% block content %}
 
 
-<form role="form" method="post" action="" enctype="multipart/form-data">
+<form role="form" method="post" action="" enctype="multipart/form-data" class="col-8">
     
   {% csrf_token %} 
-  {{ form.files }}
-  <div class="row">
-    <div class="col-md-12">
-      <div class="form-group">
-        <label class="label">Image Folder</label>
-        {{ form.folder }}
+
+
+{% if upload_type == 'models' %}
+    <div class="row">
+      <div class="col-md-12">
+
+          <span>Models to Upload:</span>
+          {{ form.files }}
+
       </div>
     </div>
-  </div>
-  <span class="text-danger">{{ form.folder.errors }}</span>
+{% else %}
 
-  <br />
-
+    <div class="row">
+      <div class="col-md-12">
+        <div class="form-group">
+          <span>Folder name:</span>
+          {{ form.folder }}
+        </div>
+      </div>
+    </div>
+    <!-- <span class="text-danger">{{ form.folder.errors }}</span> -->
   <div class="row">
     <div class="col-md-12">
-      <div class="form-group">
-        <label class="label">Data ID</label>
+      <!-- <div class="form-group"> -->
+        <span>Data Identifier:</span>
         {{ form.data_id }}
-      </div>
+      <!-- </div> -->
     </div>
   </div>
-  <span class="text-danger">{{ form.data_id.errors }}</span>
 
-  <br />
-  <span>Ring Annotations:</span>
-    {{ form.ring_groundtruth }}
+  {% if upload_type == 'images' %}
 
-  <span>Outer Annotations:</span>
-    {{ form.outer_contour }}
 
-  <br />
+    <div class="row">
+      <div class="col-md-12">
 
+          <span>Images to Upload:</span>
+          {{ form.files }}
+
+      </div>
+    </div>
+  {% elif  upload_type == 'annuli' %}
+
+    <div class="row">
+      <div class="col-md-12">
+        <span>Annuli Annotations:</span>
+          {{ form.ring_groundtruth }}
+      </div>
+    </div>
+
+  {% else %}
+
+
+    <div class="row">
+      <div class="col-md-12">
+        <span>Outer Annotations:</span>
+          {{ form.outer_contour }}
+      </div>
+    </div>
+
+  {% endif %}
+{% endif %}
   <button type="submit" name="register" class="btn pull-left">Upload</button>
 
 
@@ -51,6 +82,39 @@
   <div class="clearfix"></div>
 
 </form>
+
+<h3>All User Uploads</h3>
+<div class="card-body">
+  <div class="table-responsive">
+    <table class="table">
+      <thead class=" text-primary">
+
+        <th>
+          Training folder name
+        </th>
+        <th>
+          Pre-requisites
+        </th>
+
+
+      </thead>
+      <tbody>
+      {% for folder in folders %}
+        <tr>
+            <td class="foldername">
+                <a href="/demo/dataview/datasets_user/{{ folder }}"><h3>{{ folder }}</h3></a>
+            </td>
+            <td class="with_valid">
+              <a href="/demo/dataview/datasets_user/{{ folder }}"><button class="btn-secondary item-right">Load training images</button></a>
+            </td>
+         </tr>
+      {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+
+
 {% endblock content %}
 
 
