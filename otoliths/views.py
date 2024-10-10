@@ -255,7 +255,7 @@ def data_detail(request, image_name):
 
 @login_required
 def experiments(request):
-    return render(request, 'otoliths/experiments.html')
+    return render(request, 'otoliths/experiments_textbased.html')
 
 
 @login_required
@@ -2510,3 +2510,618 @@ def interact(request):
                     json.dump(main_json, fout, indent=4)
                      
     return HttpResponse("success")
+
+
+@login_required
+def unet_setup(request):
+    if request.method == 'POST':
+        print(request.POST)
+        raise ValueError
+
+    initial = get_url_params(request.GET)
+    initial.update({'method': 'U-Net'})
+    dataset = initial['dataset']
+    folder = "unet_{}{}run1_{}".format(initial['run_label'], initial['idr'], initial['selected'])
+    outfiles = glob.glob("{}/{}/*_of_*.txt".format(dataset, folder))
+
+    print(outfiles)
+    print(">>>>>>>>>>>>>>>>>>")
+
+    existing_results = False
+    if len(outfiles) > 0:
+        outfiles.sort(key=os.path.getctime)
+        existing_results = outfiles[-1].replace("\\", "/").split("/")[-1]
+    print(initial)
+    if 'base' in initial:
+        form = RunFormPhase2(initial=initial)
+        return render(request, 'otoliths/ai_run_v2.html', {'form': form, 'existing_results': existing_results, 'dataset': dataset, 'folder': folder})
+    else:
+        form = RunFormPhase1(initial=initial)
+        return render(request, 'otoliths/ai_run.html', {'form': form, 'existing_results': existing_results})
+
+
+@login_required
+def mrcnn_setup(request):
+    if request.method == 'POST':
+        print(request.POST)
+        raise ValueError
+
+    initial = get_url_params(request.GET)
+    initial.update({'method': 'Mask R-CNN'})
+
+    dataset = initial['dataset']
+    folder = "mrcnn_{}{}run1_{}".format(initial['run_label'], initial['idr'], initial['selected'])
+    outfiles = glob.glob("{}/{}/*_of_*.txt".format(dataset, folder))
+
+    existing_results = False
+    if len(outfiles) > 0:
+        outfiles.sort(key=os.path.getctime)
+        existing_results = outfiles[-1].replace("\\", "/").split("/")[-1]
+
+    print(initial)
+    if 'base' in initial:
+        form = RunFormPhase2(initial=initial)
+        return render(request, 'otoliths/ai_run_v2.html', {'form': form, 'existing_results': existing_results, 'dataset': dataset, 'folder': folder})
+    else:
+        form = RunFormPhase1(initial=initial)
+        return render(request, 'otoliths/ai_run.html', {'form': form})
+
+
+@login_required
+def start_run(request):
+    if request.method == 'POST':
+        print(request.POST)
+        settings = get_url_params(request.POST, mode='POST')
+        print(settings)
+        if settings['method'] == 'U-Net':
+            run_unet(settings)
+        elif settings['method'] == 'Mask R-CNN':
+            run_mrcnn(settings)
+
+        dataset = settings['dataset']
+        # name = 'unet_{}{}run1_{}'.format(run_label, idr, param_count)
+        if settings['method'] == 'U-Net':
+            folder = "unet_{}{}run1_{}".format(settings['run_label'], settings['idr'], settings['selected'][0])
+        elif settings['method'] == 'Mask R-CNN':
+            folder = "mrcnn_{}{}run1_{}".format(settings['run_label'], settings['idr'], settings['selected'][0])
+        
+        outfiles = glob.glob("{}/{}/*_of_*.txt".format(dataset, folder))
+        outfiles.sort(key=os.path.getctime)
+        fname = outfiles[-1].replace("\\", "/").split("/")[-1]
+        return redirect("/otoliths/results/"+
+                        "?dataset={}".format(dataset) +
+                        "&folder={}".format(folder) +
+                        "&fname={}".format(fname))
+
+
+@login_required
+def ensemble_sets(request, dataset, subset):
+
+    if request.method == 'POST':
+        print(request.POST)
+        split_name = request.POST['split_name']
+        replicate_id = int(split_name.split('replicate')[-1])
+        print(replicate_id)
+        if subset == 'north':
+            ensemble_train_and_predict_north(subset, replicate_id)
+        else:
+            ensemble_train_and_predict_baltic(subset, replicate_id)
+        folder = "results"
+        fname = "{}_combined.txt".format(subset)
+        return redirect("/otoliths/results/"+
+                        "?dataset={}".format(dataset) +
+                        "&source=datasets_{}".format(subset) +
+                        "&folder={}".format(folder) +
+                        "&fname={}".format(fname))
+
+    all_split_name = []
+    all_folders = []
+    all_split_sets = {}
+    all_dir_paths = glob.glob('datasets_ensemble/unet_{}_*/*.txt'.format(subset))
+    for dir_path in all_dir_paths:
+        strs = dir_path.replace("\\", "/").split("/")
+        path = strs[-1]
+        raw_split_name = path.split("_")[1].split("based")[0]
+        print(raw_split_name)
+        split_name = raw_split_name
+        if 'normal' in split_name or 'retain' in split_name:
+            continue
+        if 'comb' in raw_split_name:
+            split_id = raw_split_name.split('comb')[0].replace('ex', '')
+            split_name = 'all-folds-combined replicate{}'.format(split_id)
+        if 'kfold' in raw_split_name:
+            continue
+            # split_id = raw_split_name.split('kfold')[0].replace('ex', '')
+            # split_name = '3-fold replicate{}'.format(split_id)
+        if split_name in all_split_sets:
+            continue
+        all_split_name.append(split_name)
+        all_split_sets[split_name] = 1
+        all_folders.append([split_name, True, True, False, False])
+
+    form = EnsembleFilterForm(initial={'subset': subset}, request=request, choices=['all'] + sorted(list(set(all_split_name))) ) 
+
+    return render(request, 'otoliths/ensemble_sets.html', {'dataset': dataset, 'folders': all_folders, 'form': form})
+
+
+def ensemble_train_and_predict_baltic(domain, base_rep):
+    from sklearn.linear_model import LinearRegression, LogisticRegression
+    from sklearn.ensemble import RandomForestClassifier
+    from sklearn.svm import SVR
+    import glob
+    import numpy as np
+    import pandas as pd
+
+    mrcnn_none_data = []
+    mrcnn_coco_data = []
+
+    if domain == 'north':
+        pass
+    else:
+        mrcnn_north_data = []
+
+    unet_none_data = []
+    unet_vgg_data = []
+
+    if domain == 'north':
+        pass
+    else:
+        unet_north_data = []
+
+    manual_readings_on_training_data = []
+
+    all_files = glob.glob("datasets_ensemble/mrcnn_{}_exfold/mrcnn_ex{}*coco*.txt".format(domain, base_rep))
+    all_files = sorted(all_files)
+    for ff in all_files:
+        with open(ff) as fin:
+            lines = fin.readlines()
+        for line in lines:
+            strs = line.strip().split(",")
+            
+            ai_reading = round(float(strs[-2]))
+            mrcnn_coco_data.append(ai_reading)
+
+            manual_reading = round(float(strs[-1]))
+            manual_readings_on_training_data.append(manual_reading)
+    
+
+
+    all_files = glob.glob("datasets_ensemble/mrcnn_{}_exfold/mrcnn_ex{}*none*.txt".format(domain, base_rep))
+    all_files = sorted(all_files)
+    for ff in all_files:
+        with open(ff) as fin:
+            lines = fin.readlines()
+        for line in lines:
+            strs = line.strip().split(",")
+            ai_reading = round(float(strs[-2]))
+            mrcnn_none_data.append(ai_reading)
+
+
+    if domain == 'north':
+        all_files = glob.glob("datasets_ensemble/mrcnn_{}_exfold/mrcnn_{}ex*baltic*.txt".format(domain, base_rep))
+    else:
+        all_files = glob.glob("datasets_ensemble/mrcnn_{}_exfold/mrcnn_ex{}*north*.txt".format(domain, base_rep))
+    all_files = sorted(all_files)
+    for ff in all_files:
+        with open(ff) as fin:
+            lines = fin.readlines()
+        for line in lines:
+            strs = line.strip().split(",")
+            ai_reading = round(float(strs[-2]))
+            mrcnn_north_data.append(ai_reading)
+
+    all_files = glob.glob("datasets_ensemble/unet_{}_exfold/unet_{}ex*none*.txt".format(domain, base_rep))
+    all_files = sorted(all_files)
+    for ff in all_files:
+        with open(ff) as fin:
+            lines = fin.readlines()
+        for line in lines:
+            strs = line.strip().split(",")
+            ai_reading = round(float(strs[-2]))
+            unet_none_data.append(ai_reading)
+
+    all_files = glob.glob("datasets_ensemble/unet_{}_exfold/unet_{}ex*vgg*.txt".format(domain, base_rep))
+    all_files = sorted(all_files)
+    for ff in all_files:
+        with open(ff) as fin:
+            lines = fin.readlines()
+        for line in lines:
+            strs = line.strip().split(",")
+            ai_reading = round(float(strs[-2]))
+            unet_vgg_data.append(ai_reading)
+
+    if domain == 'north':
+        pass
+    else:
+        all_files = glob.glob("datasets_ensemble/unet_{}_exfold/unet_{}ex*north*.txt".format(domain, base_rep))
+    all_files = sorted(all_files)
+    for ff in all_files:
+        with open(ff) as fin:
+            lines = fin.readlines()
+        for line in lines:
+            strs = line.strip().split(",")
+            ai_reading = round(float(strs[-2]))
+            unet_north_data.append(ai_reading) 
+            
+
+    manual_readings_on_training_data = np.array(manual_readings_on_training_data)
+
+    ai_training_data = pd.DataFrame()
+    ai_training_data['mrcnn_none'] = np.array(mrcnn_none_data)
+    ai_training_data['mrcnn_coco'] = np.array(mrcnn_coco_data)
+
+    if domain == 'north':
+        pass
+    else:
+        ai_training_data['mrcnn_north'] = np.array(mrcnn_north_data)
+
+    ai_training_data['unet_none'] = np.array(unet_none_data)
+    ai_training_data['unet_vgg'] = np.array(unet_vgg_data)
+
+    if domain == 'north':
+        pass
+    else:
+        ai_training_data['unet_north'] = np.array(unet_north_data)
+
+
+    linear_model = LinearRegression()
+    linear_model.fit(ai_training_data, manual_readings_on_training_data)
+
+    rf_model = RandomForestClassifier(max_depth=5, random_state=101)
+    rf_model.fit(ai_training_data, manual_readings_on_training_data)
+
+    #-----------------------------------------------------------------------------------------------------------------
+
+    mrcnn_none_data = []
+    mrcnn_coco_data = []
+    mrcnn_north_data = []
+
+    unet_none_data = []
+    unet_vgg_data = []
+    unet_north_data = []
+
+    names_test_data = []
+    manual_readings_on_test_data = []
+
+    all_files = glob.glob("datasets_ensemble/mrcnn_{}_combined/mrcnn_ex{}*coco*.txt".format(domain, base_rep))
+    
+    for ff in all_files:
+        with open(ff) as fin:
+            lines = fin.readlines()
+        for line in lines:
+            strs = line.strip().split(",")
+
+            ai_reading = round(float(strs[-2]))
+            mrcnn_coco_data.append(ai_reading)
+
+            manual_reading = round(float(strs[-1]))
+            manual_readings_on_test_data.append(manual_reading)
+
+            names_test_data.append(strs[0])
+    
+
+    all_files = glob.glob("datasets_ensemble/mrcnn_{}_combined/mrcnn_ex{}*none*.txt".format(domain, base_rep))
+    for ff in sorted(all_files):
+        with open(ff) as fin:
+            lines = fin.readlines()
+        for line in lines:
+            strs = line.strip().split(",")
+            ai_reading = round(float(strs[-2]))
+            mrcnn_none_data.append(ai_reading)
+
+    all_files = glob.glob("datasets_ensemble/mrcnn_{}_combined/mrcnn_ex{}*north*.txt".format(domain, base_rep))
+    for ff in sorted(all_files):
+        with open(ff) as fin:
+            lines = fin.readlines()
+        for line in lines:
+            strs = line.strip().split(",")
+            ai_reading = round(float(strs[-2]))
+            mrcnn_north_data.append(ai_reading)
+
+    all_files = glob.glob("datasets_ensemble/unet_{}_combined/unet_ex{}*none*.txt".format(domain, base_rep))
+    for ff in sorted(all_files):
+        with open(ff) as fin:
+            lines = fin.readlines()
+        for line in lines:
+            strs = line.strip().split(",")
+            ai_reading = round(float(strs[-2]))
+            unet_none_data.append(ai_reading)
+
+    all_files = glob.glob("datasets_ensemble/unet_{}_combined/unet_ex{}*vgg*.txt".format(domain, base_rep))
+    for ff in sorted(all_files):
+        with open(ff) as fin:
+            lines = fin.readlines()
+        for line in lines:
+            strs = line.strip().split(",")
+            ai_reading = round(float(strs[-2]))
+            unet_vgg_data.append(ai_reading)
+
+    all_files = glob.glob("datasets_ensemble/unet_{}_combined/unet_ex{}*north*.txt".format(domain, base_rep))
+    for ff in sorted(all_files):
+        with open(ff) as fin:
+            lines = fin.readlines()
+        for line in lines:
+            strs = line.strip().split(",")
+            ai_reading = round(float(strs[-2]))
+            unet_north_data.append(ai_reading)
+            
+
+    manual_readings_on_test_data = np.array(manual_readings_on_test_data)
+
+    ai_test_data = pd.DataFrame()
+    ai_test_data['mrcnn_none'] = np.array(mrcnn_none_data)
+    ai_test_data['mrcnn_coco'] = np.array(mrcnn_coco_data)
+    ai_test_data['mrcnn_north'] = np.array(mrcnn_north_data)
+    ai_test_data['unet_none'] = np.array(unet_none_data)
+    ai_test_data['unet_vgg'] = np.array(unet_vgg_data)
+    ai_test_data['unet_north'] = np.array(unet_north_data)
+
+
+
+    all_baltic_acc = []
+    all_results = []
+    rf_pred = rf_model.predict(ai_test_data)
+    linear_pred = linear_model.predict(ai_test_data)
+    mean_pred = ai_test_data.mean(axis=1)
+
+    rf_correct = 0
+    lin_correct = 0
+    mean_correct = 0
+    for idx, actual in enumerate(manual_readings_on_test_data):
+        fname = names_test_data[idx]
+        diff = actual - round(rf_pred[idx])
+        if diff == 0:
+            rf_correct += 1
+        diff = actual - round(linear_pred[idx])
+        if diff == 0:
+            lin_correct += 1
+        diff = actual - round(mean_pred[idx])
+        if diff == 0:
+            mean_correct += 1
+
+        all_results.append("{},{},{},{},{}".format(fname, round(rf_pred[idx]), round(linear_pred[idx]), round(mean_pred[idx]), actual))
+
+    print(rf_correct)
+    print(lin_correct)
+    print(mean_correct)
+    all_baltic_acc.append(100*rf_correct/len(manual_readings_on_test_data))
+    all_baltic_acc.append(100*lin_correct/len(manual_readings_on_test_data))
+    all_baltic_acc.append(100*mean_correct/len(manual_readings_on_test_data))
+
+    results_path = "datasets_ensemble/results/"
+    try:
+        os.makedirs(results_path)
+    except:
+        pass
+
+    with open("{}/{}_combined.txt".format(results_path, domain), "w") as fout:
+        fout.write("\n".join(all_results))
+
+    return rf_correct, lin_correct, mean_correct
+
+
+def ensemble_train_and_predict_north(domain, base_rep):
+    from sklearn.linear_model import LinearRegression, LogisticRegression
+    from sklearn.ensemble import RandomForestClassifier
+    from sklearn.svm import SVR
+    import glob
+    import numpy as np
+    import pandas as pd
+    # import random
+
+    mrcnn_none_data = []
+    mrcnn_coco_data = []
+    mrcnn_baltic_data = []
+
+    unet_none_data = []
+    unet_vgg_data = []
+    unet_baltic_data = []
+
+    manual_readings_on_training_data = []
+    all_files = glob.glob("datasets_ensemble/mrcnn_north_exfold/mrcnn_{}*baltic*.txt".format(base_rep))
+    all_files = sorted(all_files)
+    for ff in all_files:
+        with open(ff) as fin:
+            lines = fin.readlines()
+        for line in lines:
+            strs = line.strip().split(",")
+
+            ai_reading = round(float(strs[-2]))
+            mrcnn_baltic_data.append(ai_reading)
+
+            manual_reading = round(float(strs[-1]))
+            manual_readings_on_training_data.append(manual_reading)
+    
+    all_files = glob.glob("datasets_ensemble/mrcnn_north_exfold/mrcnn_{}*none*.txt".format(base_rep))
+    all_files = sorted(all_files)
+    for ff in all_files:
+        with open(ff) as fin:
+            lines = fin.readlines()
+        for line in lines:
+            strs = line.strip().split(",")
+            ai_reading = round(float(strs[-2]))
+            mrcnn_none_data.append(ai_reading)
+
+    all_files = glob.glob("datasets_ensemble/mrcnn_north_exfold/mrcnn_{}*coco*.txt".format(base_rep))
+    all_files = sorted(all_files)
+    for ff in all_files:
+        with open(ff) as fin:
+            lines = fin.readlines()
+        for line in lines:
+            strs = line.strip().split(",")
+            ai_reading = round(float(strs[-2]))
+            mrcnn_coco_data.append(ai_reading)
+            
+            
+    all_files = glob.glob("datasets_ensemble/unet_north_exfold/unet_{}*none*.txt".format(base_rep))
+    all_files = sorted(all_files)
+    for ff in all_files:
+        with open(ff) as fin:
+            lines = fin.readlines()
+        for line in lines:
+            strs = line.strip().split(",")
+            ai_reading = round(float(strs[-2]))
+            unet_none_data.append(ai_reading)
+
+    all_files = glob.glob("datasets_ensemble/unet_north_exfold/unet_{}*vgg*.txt".format(base_rep))
+    all_files = sorted(all_files)
+    for ff in all_files:
+        with open(ff) as fin:
+            lines = fin.readlines()
+        for line in lines:
+            strs = line.strip().split(",")
+            ai_reading = round(float(strs[-2]))
+            unet_vgg_data.append(ai_reading)
+
+    all_files = glob.glob("datasets_ensemble/unet_north_exfold/unet_{}*baltic*.txt".format(base_rep))
+    all_files = sorted(all_files)
+    for ff in all_files:
+        with open(ff) as fin:
+            lines = fin.readlines()
+        for line in lines:
+            strs = line.strip().split(",")
+            ai_reading = round(float(strs[-2]))
+            unet_baltic_data.append(ai_reading) 
+            
+
+    manual_readings_on_training_data = np.array(manual_readings_on_training_data)
+    ai_training_data = pd.DataFrame()
+    ai_training_data['mrcnn_none'] = np.array(mrcnn_none_data)
+    ai_training_data['mrcnn_coco'] = np.array(mrcnn_coco_data)
+    ai_training_data['mrcnn_baltic'] = np.array(mrcnn_baltic_data)
+    ai_training_data['unet_none'] = np.array(unet_none_data)
+    ai_training_data['unet_vgg'] = np.array(unet_vgg_data)
+    ai_training_data['unet_baltic'] = np.array(unet_baltic_data)
+
+    linear_model = LinearRegression()
+    linear_model.fit(ai_training_data, manual_readings_on_training_data)
+
+    rf_model = RandomForestClassifier(max_depth=5, random_state=101)
+    rf_model.fit(ai_training_data, manual_readings_on_training_data)
+
+
+    names_test_data= []
+    manual_readings_on_test_data = []
+
+    mrcnn_none_data = []
+    mrcnn_coco_data = []
+    mrcnn_baltic_data = []
+
+    unet_none_data = []
+    unet_vgg_data = []
+    unet_baltic_data = []
+
+
+    all_files = glob.glob("datasets_ensemble/mrcnn_north_combined/mrcnn_{}*baltic*.txt".format(base_rep))
+    for ff in sorted(all_files):
+        with open(ff) as fin:
+            lines = fin.readlines()
+        for line in lines:
+            strs = line.strip().split(",")
+
+            ai_reading = round(float(strs[-2]))
+            mrcnn_baltic_data.append(ai_reading)
+
+            manual_reading = round(float(strs[-1]))
+            manual_readings_on_test_data.append(manual_reading)
+            names_test_data.append(strs[0])
+
+    all_files = glob.glob("datasets_ensemble/mrcnn_north_combined/mrcnn_{}*none*.txt".format(base_rep))
+    for ff in sorted(all_files):
+        with open(ff) as fin:
+            lines = fin.readlines()
+        for line in lines:
+            strs = line.strip().split(",")
+            ai_reading = round(float(strs[-2]))
+            mrcnn_none_data.append(ai_reading)
+
+    all_files = glob.glob("datasets_ensemble/mrcnn_north_combined/mrcnn_{}*coco*.txt".format(base_rep))
+    for ff in sorted(all_files):
+        with open(ff) as fin:
+            lines = fin.readlines()
+        for line in lines:
+            strs = line.strip().split(",")
+            ai_reading = round(float(strs[-2]))
+            mrcnn_coco_data.append(ai_reading)
+              
+            
+    all_files = glob.glob("datasets_ensemble/unet_north_combined/unet_{}*none*.txt".format(base_rep))
+    for ff in sorted(all_files):
+        with open(ff) as fin:
+            lines = fin.readlines()
+        for line in lines:
+            strs = line.strip().split(",")
+            ai_reading = round(float(strs[-2]))
+            unet_none_data.append(ai_reading)
+
+    all_files = glob.glob("datasets_ensemble/unet_north_combined/unet_{}*vgg*.txt".format(base_rep))
+    for ff in sorted(all_files):
+        with open(ff) as fin:
+            lines = fin.readlines()
+        for line in lines:
+            strs = line.strip().split(",")
+            ai_reading = round(float(strs[-2]))
+            unet_vgg_data.append(ai_reading)
+
+    all_files = glob.glob("datasets_ensemble/unet_north_combined/unet_{}*baltic*.txt".format(base_rep))
+    for ff in sorted(all_files):
+        with open(ff) as fin:
+            lines = fin.readlines()
+        for line in lines:
+            strs = line.strip().split(",")
+            ai_reading = round(float(strs[-2]))
+            unet_baltic_data.append(ai_reading)
+            
+
+    manual_readings_on_test_data = np.array(manual_readings_on_test_data)
+    ai_test_data = pd.DataFrame()
+    ai_test_data['mrcnn_none'] = np.array(mrcnn_none_data)
+    ai_test_data['mrcnn_coco'] = np.array(mrcnn_coco_data)
+    ai_test_data['mrcnn_baltic'] = np.array(mrcnn_baltic_data)
+    ai_test_data['unet_none'] = np.array(unet_none_data)
+    ai_test_data['unet_vgg'] = np.array(unet_vgg_data)
+    ai_test_data['unet_baltic'] = np.array(unet_baltic_data)
+
+
+
+    all_north_acc = []
+    all_results = []
+    rf_pred = rf_model.predict(ai_test_data)
+    linear_pred = linear_model.predict(ai_test_data)
+    mean_pred = ai_test_data.mean(axis=1)
+
+    rf_correct = 0
+    lin_correct = 0
+    mean_correct = 0
+    for idx, actual in enumerate(manual_readings_on_test_data):
+        fname = names_test_data[idx]
+        diff = actual - round(rf_pred[idx])
+        if diff == 0:
+            rf_correct += 1
+        diff = actual - round(linear_pred[idx])
+        if diff == 0:
+            lin_correct += 1
+        diff = actual - round(mean_pred[idx])
+        if diff == 0:
+            mean_correct += 1
+
+        all_results.append("{},{},{},{},{}".format(fname, round(rf_pred[idx]), round(linear_pred[idx]), round(mean_pred[idx]), actual))
+
+    print(rf_correct)
+    print(lin_correct)
+    print(mean_correct)
+    all_north_acc.append(100*rf_correct/len(manual_readings_on_test_data))
+    all_north_acc.append(100*lin_correct/len(manual_readings_on_test_data))
+    all_north_acc.append(100*mean_correct/len(manual_readings_on_test_data))
+
+    results_path = "datasets_ensemble/results/"
+    try:
+        os.makedirs(results_path)
+    except:
+        pass
+
+    with open("{}/{}_combined.txt".format(results_path, domain), "w") as fout:
+        fout.write("\n".join(all_results))
+
+    return rf_correct, lin_correct, mean_correct
+

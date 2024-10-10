@@ -30,6 +30,12 @@ urlpatterns = [
     path('dataview/<str:dataset>/<str:folder>/', views.dataview_images),
     path('dataview/<str:dataset>/<str:folder>/<str:image_name>', views.data_detail),
     path('results/', views.show_results_table_from_file),
+
+    path('unet_setup/', views.unet_setup),
+    path('mrcnn_setup/', views.mrcnn_setup),
+    path('start_run/', views.start_run),
+    path('ensemble/<str:dataset>/<str:subset>/', views.ensemble_sets),
+
     
     path('logout/', LogoutView.as_view(), name="logout"),
     path('', LoginView.as_view(template_name='accounts/login.html', redirect_authenticated_user=False), name="login")

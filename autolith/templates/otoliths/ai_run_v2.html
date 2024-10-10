@@ -1,0 +1,161 @@
+{% extends "base.html" %}
+
+{% block title %} <h2>Section: RUN METHOD</h2> {% endblock %} 
+
+<!-- Specific Page CSS goes HERE  -->
+{% block stylesheets %}{% endblock stylesheets %}
+
+
+{% block container %}
+
+{% if existing_results %}
+  <p>Detected existing result: <a href="/otoliths/results/?dataset={{dataset}}&folder={{folder}}&fname={{existing_results}}">{{ existing_results}}</a></p>
+{% endif %}
+<form role="form" method="post" action="/otoliths/start_run/" class="col-8">
+    
+  {% csrf_token %} 
+
+  <span>IMPORTANT!!! The image dataset uploaded in zenodo needs to be downloaded first</span>
+  <br>
+  <br>
+  <div class="row">
+    <div class="col-md-12">
+      <div class="form-group">
+        <span class="label">Method</span>
+        {{ form.method }}
+      </div>
+    </div>
+  </div>
+  <span class="text-danger">{{ form.method.errors }}</span>
+
+  <div class="row">
+    <div class="col-md-12">
+      <div class="form-group">
+        <span class="label">Dataset </span>
+        {{ form.dataset }}
+
+        
+      </div>
+    </div>
+  </div>
+  <span class="text-danger">{{ form.dataset.errors }}</span>
+
+  <div class="row">
+    <div class="col-md-12">
+      <div class="form-group">
+        <span class="label">Run Type </span>
+        {{ form.run_type }}
+        
+      </div>
+    </div>
+  </div>
+  <span class="text-danger">{{ form.run_type.errors }}</span>
+
+  <div class="row">
+    <div class="col-md-12">
+      <div class="form-group">
+        <span class="label">Run Label</span>
+        {{ form.run_label }}
+      </div>
+    </div>
+  </div>
+  <span class="text-danger">{{ form.run_label.errors }}</span>
+
+  <div class="row">
+    <div class="col-md-12">
+      <div class="form-group">
+        <span class="label">Run ID</span>
+        {{ form.idr }}
+      </div>
+    </div>
+  </div>
+  <span class="text-danger">{{ form.idr.errors }}</span>
+
+  <div class="row">
+    <div class="col-md-12">
+      <div class="form-group">
+        <span class="label">Split Name</span>
+        {{ form.split_name }}
+      </div>
+    </div>
+  </div>
+  <span class="text-danger">{{ form.split_name.errors }}</span>
+
+  <div class="row">
+    <div class="col-md-12">
+      <div class="form-group">
+        <span class="label">Selected Parameter ID</span>
+        {{ form.selected }}
+      </div>
+    </div>
+  </div>
+  <span class="text-danger">{{ form.selected.errors }}</span>
+
+
+
+  <div class="row">
+    <div class="col-md-12">
+      <div class="form-group">
+        <span class="label">Continual</span>
+        {{ form.continual }}
+      </div>
+    </div>
+  </div>
+  <span class="text-danger">{{ form.continual.errors }}</span>
+
+
+  <div class="row">
+    <div class="col-md-12">
+      <div class="form-group">
+        <span class="label">Base Weight/Model</span>
+        {{ form.base }}
+      </div>
+    </div>
+  </div>
+  <span class="text-danger">{{ form.base.errors }}</span>
+
+  <div class="row">
+    <div class="col-md-12">
+      <div class="form-group">
+        <span class="label">Base ID</span>
+        {{ form.base_id }}
+      </div>
+    </div>
+  </div>
+  <span class="text-danger">{{ form.base_id.errors }}</span>
+
+
+  <div class="row">
+    <div class="col-md-12">
+      <div class="form-group">
+        <span class="label">Source Domain</span>
+        {{ form.source_dataset }}
+      </div>
+    </div>
+  </div>
+  <span class="text-danger">{{ form.source_dataset.errors }}</span>
+
+  <div class="row">
+    <div class="col-md-12">
+      <div class="form-group">
+        <span class="label">Evaluate Selected Set</span>
+        {{ form.eval_balanced_set }}
+      </div>
+    </div>
+  </div>
+  <span class="text-danger">{{ form.eval_balanced_set.errors }}</span>
+
+
+  <button type="submit" name="register" class="btn pull-left">START</button>
+
+
+
+  <div class="clearfix"></div>
+
+</form>
+{% endblock container %}
+
+
+
+<!-- Specific Page JS goes HERE  -->
+{% block javascripts %}{% endblock javascripts %}

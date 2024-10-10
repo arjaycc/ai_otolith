@@ -1,0 +1,74 @@
+{% extends "base.html" %}
+
+{% block title %} <h2>Section: Experiments</h2> {% endblock %} 
+
+<!-- Specific Page CSS goes HERE  -->
+{% block stylesheets %}{% endblock stylesheets %}
+
+
+{% block container %}
+
+
+<ul>
+
+    <h3> (ALTERNATIVE/OLDER GUI) PRE-DEFINED RUN SETUPS</h3>
+
+    <br>
+    <h5>Transfer Learning</h5>
+
+    <li>
+         <a href="/otoliths/unet_setup/?dataset=datasets_baltic&base=north&base_id=0&split_name=ex0kfold&run_label=0exkfoldbasednorth&selected=37">Test U-Net Transfer Learning K-Fold (Baltic Test, BaseWeight=NorthModel, BaseWeightSourceID=0, RunIdentifier=0) </a>
+    </li>
+
+    <li>
+         <a href="/otoliths/mrcnn_setup/?dataset=datasets_baltic&base=north&base_id=0&split_name=ex0kfold&run_label=ex0kfoldbasednorth&selected=2">Test Mask R-CNN Transfer Learning K-Fold (Baltic Test, BaseWeight=NorthModel, BaseWeightSourceID=0, RunIdentifier=0) </a>
+    </li>
+
+
+    <li>
+         <a href="/otoliths/unet_setup/?dataset=datasets_baltic&base=north&base_id=0&split_name=ex0combined&run_label=ex0combobasednorth&selected=37">Test U-Net Transfer Learning Combined Folds (Baltic Test, BaseWeight=NorthModel, BaseWeightSourceID=0, RunIdentifier=0) </a>
+    </li>
+
+    <li>
+         <a href="/otoliths/mrcnn_setup/?dataset=datasets_baltic&base=north&base_id=0&split_name=ex0combined&run_label=ex0combobasednorth&selected=2">Test Mask R-CNN Transfer Learning Combined Folds (Baltic Test, BaseWeight=NorthModel, BaseWeightSourceID=0, RunIdentifier=0) </a>
+    </li>
+
+    <br>
+    <h5>Continual Learning</h5>
+
+    <li>
+         <a href="/otoliths/unet_setup/?dataset=datasets_baltic&base=north&base_id=0&split_name=in0kfold&run_label=in0normalbasednorth&selected=37">Test U-Net Continual Learning without Rehearsal (Baltic Test, BaseWeight=NorthModel, BaseWeightSourceID=0, RunIdentifier=0) </a>
+    </li>
+
+    <li>
+         <a href="/otoliths/mrcnn_setup/?dataset=datasets_baltic&base=north&base_id=0&split_name=in0kfold&run_label=in0normalbasednorth&selected=2">Test Mask R-CNN Continual Learning without Rehearsal (Baltic Test, BaseWeight=NorthModel, BaseWeightSourceID=0, RunIdentifier=0) </a>
+    </li>
+
+
+    <li>
+         <a href="/otoliths/unet_setup/?dataset=datasets_baltic&base=north&base_id=0&split_name=in0retain&run_label=in0retainbasednorth&selected=37">Test U-Net Continual Learning with Rehearsal (Baltic Test, BaseWeight=NorthModel, BaseWeightSourceID=0, RunIdentifier=0) </a>
+    </li>
+
+    <li>
+         <a href="/otoliths/mrcnn_setup/?dataset=datasets_baltic&base=north&base_id=0&split_name=in0retain&run_label=in0retainbasednorth&selected=2">Test Mask R-CNN Continual Learning with Rehearsal (Baltic Test, BaseWeight=NorthModel, BaseWeightSourceID=0, RunIdentifier=0) </a>
+    </li>
+
+    <br>
+    <h5>Ensemble Learning</h5>
+
+    <li>
+         <a href="/otoliths/ensemble/datasets_ensemble/north/">Test Ensemble Learning (North Sea Dataset) </a>
+    </li>
+    <li>
+         <a href="/otoliths/ensemble/datasets_ensemble/baltic/">Test Ensemble Learning (Baltic Sea Dataset) </a>
+    </li>
+
+</ul>
+
+
+{% endblock container %}
+
+
+
+<!-- Specific Page JS goes HERE  -->
+{% block javascripts %}{% endblock javascripts %}
