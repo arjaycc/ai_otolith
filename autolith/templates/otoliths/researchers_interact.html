@@ -8619,29 +8619,62 @@ function project_save_with_confirm() {
                 //                'save_images':{type:'checkbox', 'name':'Save images <span class="warning">(WARNING: only recommended for projects containing small number of images)</span>', value:false},
               };
 
-  invoke_with_user_inputs(project_save_confirmed, input, config);
+  // invoke_with_user_inputs(project_save_confirmed, input, config);
+  project_save_confirmed(input, config);
 }
 
 function project_save_confirmed(input) {
-  if ( input.project_name.value !== _via_settings.project.name ) {
-    project_set_name(input.project_name.value);
-  }
+  // if ( input.project_name.value !== _via_settings.project.name ) {
+  //   project_set_name(input.project_name.value);
+  // }
 
-  // via project
+  // // via project
+  // var _via_project = { '_via_settings': _via_settings,
+  //                      '_via_img_metadata': _via_img_metadata,
+  //                      '_via_attributes': _via_attributes,
+  //                      '_via_data_format_version': '2.0.10',
+  //                      '_via_image_id_list': _via_image_id_list
+  //                    };
+
+  // var filename = input.project_name.value + '.json';
+  // var data_blob = new Blob( [JSON.stringify(_via_project)],
+  //                           {type: 'text/json;charset=utf-8'});
+
+  // save_data_to_local_file(data_blob, filename);
+
+  // user_input_default_cancel_handler();
+
   var _via_project = { '_via_settings': _via_settings,
                        '_via_img_metadata': _via_img_metadata,
                        '_via_attributes': _via_attributes,
                        '_via_data_format_version': '2.0.10',
+                       'dataformat': '{{ dataformat }}',
+                       'dataset': '{{ dataset }}',
+                       'folder': '{{ folder }}',
                        '_via_image_id_list': _via_image_id_list
                      };
 
-  var filename = input.project_name.value + '.json';
-  var data_blob = new Blob( [JSON.stringify(_via_project)],
-                            {type: 'text/json;charset=utf-8'});
+  // console.log(JSON.stringify(_via_project));
 
-  save_data_to_local_file(data_blob, filename);
+  var xhttp = new XMLHttpRequest();
+  xhttp.open("POST", "/interact/", true);
+  xhttp.setRequestHeader("X-CSRFToken", csrftoken); 
+  xhttp.setRequestHeader('Content-Type', 'application/json');
+  // xhttp.send(JSON.stringify(
+  //     {test: 1}
+  //   ));
+  xhttp.send(JSON.stringify(_via_project));
+  xhttp.onload = function () {
+    console.log("success");
+    alert("success");
+  }
 
-  user_input_default_cancel_handler();
+  //var data_blob = new Blob( [JSON.stringify(_via_project)],
+                            //{type: 'text/json;charset=utf-8'});
+
+  //save_data_to_local_file(data_blob, filename);
+  console.log("saved")
+  
 }
 
 function project_open_select_project_file() {

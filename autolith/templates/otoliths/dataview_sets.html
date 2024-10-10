@@ -1,34 +1,34 @@
 {% extends "base.html" %}
 
-{% block title %} <h2>Section: Datasets</h2> {% endblock %} 
+{% block title %} <h2>Domain: {{ dataset }}</h2> {% endblock %} 
 
 <!-- Specific Page CSS goes HERE  -->
 {% block stylesheets %}{% endblock stylesheets %}
 
 
-{% block container %}
+{% block content %}
 
 
+  <hr>
+  <form role="form" method="get" action="." class="col-5">
+      
+    {% csrf_token %} 
 
-<div>
-<form action='.' method='GET'>
-    <select name="aimethod"> Select AI method:
-        <option style="width: 50px;">Mask-RCNN</option>
-        <option style="width: 50px;">U-Net</option>
-        <option style="width: 50px;">CNN Regression</option>
-    </select>
-    <select name="weights"> Select Model Weights:
-        <option style="width: 50px;">mrcnn_1024_otolith_0500.h5</option>
-        <option style="width: 50px;">unet_512x2_newbal_end.h5</option>
-        <option style="width: 50px;">radial_regression_ep400.h5</option>
-    </select>
-    <button >LOAD WEIGHTS</button>
-    <button >LOAD NEW IMAGES</button>
-    <button >TRAIN</button>
-    <button type="submit">PREDICT</button>
-</form>
+    <div class="row">
+      <div class="col-md-12">
+        <div class="form-group">
+          <label class="label">Filter Based on Data Subset</label>
+          {{ form.subset }}
+        </div>
+      </div>
+    </div>
+    <span class="text-danger">{{ form.subset.errors }}</span>
 
-</div>
+    <button type="submit" name="filter" value="0" class="btn pull-left">Filter</button>
+
+    <div class="clearfix"></div>
+
+  </form>
 
 
 
@@ -36,48 +36,85 @@
   <div class="table-responsive">
     <table class="table">
       <thead class=" text-primary">
+
         <th>
-          ID
+          Training folder name
         </th>
         <th>
-          Name
+          Pre-requisites
         </th>
         <th>
-          Trained
+          Annotations
         </th>
         <th>
-          Epoch
+         AI Methods
         </th>
-        <th>
-          Test Accuracy
-        </th>
+
       </thead>
       <tbody>
-{% for folder in folders %}
+      {% for folder in folders %}
         <tr>
-            <td>
-                1
+
+            <td class="foldername">
+                <a href="{{ folder.0 }}"><h3>{{ folder.0 }}</h3></a>
+            </td>
+            <td class="with_valid">
+              {% if folder.1 %}
+                  <h3>Raw Data</h3>
+              {% else %}
+                  {% if folder.2 %}
+                      <a href="{{ folder.2 }}"><h3>{{ folder.2 }}</h3></a>
+                  {% else %}
+                    {% if folder.5 %}
+                      <form action="." method="post" class="bottom-comp">
+                        {% csrf_token %} 
+                        <input type="text" name="split_name" value="{{ folder.0 }}" hidden>
+                        <input type="text" name="proportion" value="1" hidden>
+                        <input type="text" name="process" value="Create-Validation" hidden>
+                        <button class="btn-secondary item-right" type="submit">Create validation images</button>
+                      </form> 
+                    {% elif folder.3 %}
+                      <a href="{{ folder.0 }}"><button class="btn-secondary item-right">Load training images</button></a>
+                    {% else %}
+                      <a href="{{ folder.0 }}/?current_task=annotate"><button class="btn-secondary item-right">Create training annotations</button></a>
+                    {% endif %}
+                  {% endif %}
+              {% endif %}
+            </td>
+            <td class="with_annotation">
+              {% if folder.1 %}
+                  <h3>Raw Data</h3>
+              {% else %}
+
+                  {% if not folder.4 %}
+                    <h4 class="text-red">Missing Requirement</h4>
+                  {% endif %}
+                  <a href="{{ folder.0 }}/?current_task=annotate"><button {% if folder.4 %} class="btn-secondary item-right" {% else %} class="item-right" disabled {% endif %}>Create/Edit/View Annotations</button></a>
+              {% endif %}
             </td>
             <td>
-                <a href="."><h3>Dataset: {{ folder }}</h3></a>
+              {% if folder.1 %}
+                  <h3>Raw Data</h3>
+              {% else %}
+                  {% if not folder.4 %}
+                    <h4 class="text-red">Missing Requirement!</h4>
+                  {% endif %}
+                  <a href="{{ folder.0 }}/?current_task=train"><button {% if folder.4 %} class="btn-secondary item-btn-list" {% else %} class="item-btn-list" disabled {% endif %}>Train (U-Net/MRCNN)</button></a>
+                  <a href="{{ folder.0 }}/?current_task=test"><button {% if folder.4 %} class="btn-secondary item-btn-list" {% else %} class="item-btn-list" disabled {% endif %}>Predict (U-Net/MRCNN)</button></a>
+                  <a href="{{ folder.0 }}/?current_task=ensemble_train"><button {% if folder.4 %} class="btn-secondary item-btn-list" {% else %} class="item-btn-list" disabled {% endif %}>Train (Ensemble)</button></a>
+                  <a href="{{ folder.0 }}/?current_task=ensemble_test"><button {% if folder.4 %} class="btn-secondary item-btn-list" {% else %} class="item-btn-list" disabled {% endif %}>Predict (Ensemble)</button></a>
+
+               {% endif %}
             </td>
-            <td>
-                True
-            </td>
-            <td>
-                <form action="."><input type="submit"  value="Train U-Net">  </form>
-            </td>
-            <td>
-                <form action="."><input type="submit" value="Train Mask R-CNN"></form> 
-            </td>
+
          </tr>
-{% endfor %}
+      {% endfor %}
       </tbody>
     </table>
   </div>
 </div>
 
-{% endblock container %}
+{% endblock content %}
 
 
 

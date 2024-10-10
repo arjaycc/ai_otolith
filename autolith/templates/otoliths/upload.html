@@ -6,61 +6,75 @@
 {% block stylesheets %}{% endblock stylesheets %}
 
 
-{% block container %}
+{% block content %}
 
 
-<form role="form" method="post" action="">
+<form role="form" method="post" action="" enctype="multipart/form-data" class="col-8">
     
   {% csrf_token %} 
 
-  <div class="row">
-    <div class="col-md-12">
-      <div class="form-group">
-        <label class="label">Image File</label>
-        {{ form.file }}
+
+{% if upload_type == 'models' %}
+    <div class="row">
+      <div class="col-md-12">
+
+          <span>Models to Upload:</span>
+          {{ form.files }}
+
       </div>
     </div>
-  </div>
-  <span class="text-danger">{{ form.file.errors }}</span>
+{% else %}
 
-  <br />
-
-  <div class="row">
-    <div class="col-md-12">
-      <div class="form-group">
-        <label class="label">Species</label>
-        {{ form.species }}
+    <div class="row">
+      <div class="col-md-12">
+        <div class="form-group">
+          <span>Folder name:</span>
+          {{ form.folder }}
+        </div>
       </div>
     </div>
-  </div>
-  <span class="text-danger">{{ form.species.errors }}</span>
-
-  <br />
-
+    <!-- <span class="text-danger">{{ form.folder.errors }}</span> -->
   <div class="row">
     <div class="col-md-12">
-      <div class="form-group">
-        <label class="label">Quarter</label>
-        {{ form.quarter }}
-      </div>
+      <!-- <div class="form-group"> -->
+        <span>Data Identifier:</span>
+        {{ form.data_id }}
+      <!-- </div> -->
     </div>
   </div>
-  <span class="text-danger">{{ form.quarter.errors }}</span>
 
-  <br />
+  {% if upload_type == 'images' %}
 
-  <div class="row">
-    <div class="col-md-12">
-      <div class="form-group">
-        <label class="label">Location</label>
-        {{ form.location }}
+
+    <div class="row">
+      <div class="col-md-12">
+
+          <span>Images to Upload:</span>
+          {{ form.files }}
+
       </div>
     </div>
-  </div>
-  <span class="text-danger">{{ form.location.errors }}</span>
+  {% elif  upload_type == 'annuli' %}
 
-  <br />
+    <div class="row">
+      <div class="col-md-12">
+        <span>Annuli Annotations:</span>
+          {{ form.ring_groundtruth }}
+      </div>
+    </div>
 
+  {% else %}
+
+
+    <div class="row">
+      <div class="col-md-12">
+        <span>Outer Annotations:</span>
+          {{ form.outer_contour }}
+      </div>
+    </div>
+
+  {% endif %}
+{% endif %}
   <button type="submit" name="register" class="btn pull-left">Upload</button>
 
 
@@ -68,7 +82,40 @@
   <div class="clearfix"></div>
 
 </form>
-{% endblock container %}
+
+<h3>All User Uploads ({{ user.get_username }})</h3>
+<div class="card-body">
+  <div class="table-responsive">
+    <table class="table">
+      <thead class=" text-primary">
+
+        <th>
+          Training folder name
+        </th>
+        <th>
+          Pre-requisites
+        </th>
+
+
+      </thead>
+      <tbody>
+      {% for folder in folders %}
+        <tr>
+            <td class="foldername">
+                <a href="/otoliths/dataview/datasets_{{ user.get_username }}/{{ folder }}"><h3>{{ folder }}</h3></a>
+            </td>
+            <td class="with_valid">
+              <a href="/otoliths/dataview/datasets_{{ user.get_username }}/{{ folder }}"><button class="btn-secondary item-right">Load training images</button></a>
+            </td>
+         </tr>
+      {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+
+
+{% endblock content %}
 
 
 

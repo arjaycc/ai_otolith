@@ -9,7 +9,8 @@
       <div class="sidebar-wrapper">
         <ul class="nav">
           {% if user.is_authenticated %}
-          <li class="nav-item">
+
+          <li class="nav-item ">
             <a class="nav-link" href="/otoliths/images/">
               <i class="material-icons">dashboard</i>
               <p>Images</p>
@@ -17,71 +18,73 @@
           </li>
 
           <li class="nav-item">
+            <a class="nav-link" href="/otoliths/dataview/">
+              <i class="material-icons">content_paste</i>
+              <p>Getting Started</p>
+            </a>
+          </li>
+
+          
+
+          <li class="nav-item">
             <a class="nav-link" href="/otoliths/map/">
               <i class="material-icons">location_ons</i>
               <p>Sampling Stations</p>
             </a>
           </li>
+
           <li class="nav-item">
-            <a class="nav-link annotation_tool" href=".">
+            <a class="nav-link annotation_tool" href="/otoliths/index/">
               <i class="material-icons">person</i>
               <p>Annotation Tool</p>
             </a>
           </li>
 
           <li class="nav-item">
-            <a class="nav-link" href=".">
+            <a class="nav-link" href="/otoliths/experiments/">
               <i class="material-icons">library_books</i>
-              <p>Image Processing Methods</p>
+              <p>Experiments</p>
             </a>
           </li>
 
           <li class="nav-item">
-            <a class="nav-link" href="/otoliths/ai/">
+            <a class="nav-link" href="/otoliths/upload/">
+              <i class="material-icons">content_paste</i>
+              <p>Upload Data</p>
+            </a>
+          </li>
+
+          <li class="nav-item">
+            <a class="nav-link" href="/otoliths/dataview/datasets_{{ user.get_username }}/">
               <i class="material-icons">bubble_chart</i>
-              <p>Artificial Intelligence Methods</p>
+              <p>User Uploaded Images</p>
             </a>
           </li>
 
-
-
           <li class="nav-item">
-            <a class="nav-link" href="/otoliths/dataview/baltic/">
-              <i class="material-icons">bubble_chart</i>
-              <p>Deep Learning Experiments</p>
-            </a>
-          </li>
-          
-
-          <li class="nav-item">
-            <a class="nav-link" href="/otoliths/northsea/">
+            <a class="nav-link" href="/otoliths/dataview/datasets_north/">
               <i class="material-icons">bubble_chart</i>
               <p>North Sea Images</p>
             </a>
           </li>
 
           <li class="nav-item">
-            <a class="nav-link" href="/otoliths/balticsea/">
+            <a class="nav-link" href="/otoliths/dataview/datasets_baltic/">
               <i class="material-icons">bubble_chart</i>
               <p>Baltic Sea Images</p>
             </a>
           </li>
 
+
           <li class="nav-item">
-            <a class="nav-link" href=".">
-              <i class="material-icons">content_paste</i>
-              <p>Upload New Dataset</p>
-            </a>
-          </li>
-          
-          <li class="nav-item ">
-            <a class="nav-link" href="{% url 'logout' %}" >
-              <i class="material-icons">directions_run</i>
-              <p>Logout</p>
+            <a class="nav-link" href="/otoliths/ai/">
+              <i class="material-icons">language</i>
+              <p>AI Predictions</p>
             </a>
           </li>
 
           {% else %}
+          
           <li class="nav-item ">
             <a class="nav-link" href="/demo/index/">
               <i class="material-icons">dashboard</i>

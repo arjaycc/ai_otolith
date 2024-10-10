@@ -19,16 +19,18 @@ urlpatterns = [
     path('visual/', views.visualize),
     path('northsea/', views.northsea),
     path('balticsea/', views.balticsea),
-    path('detail/<str:image_name>', views.data_detail),
+    # path('detail/<str:image_name>', views.data_detail),
     path('experiments/', views.experiments),
     path('experiments/run_unet/', views.experiments_unet),
     path('experiments/run_mrcnn/', views.experiments_mrcnn),
     
     path('interact/', views.interact),
+    path('dataview/', views.dataview),
     path('dataview/<str:dataset>/', views.dataview_sets),
     path('dataview/<str:dataset>/<str:folder>/', views.dataview_images),
-    path('detail/<str:dataset>/<str:folder>/<str:image_name>', views.data_detail),
+    path('dataview/<str:dataset>/<str:folder>/<str:image_name>', views.data_detail),
+    path('results/', views.show_results_table_from_file),
     
     path('logout/', LogoutView.as_view(), name="logout"),
-    path('', LoginView.as_view(template_name='accounts/login.html', redirect_authenticated_user=True), name="login")
+    path('', LoginView.as_view(template_name='accounts/login.html', redirect_authenticated_user=False), name="login")
 ]

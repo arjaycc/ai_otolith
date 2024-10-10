@@ -1,0 +1,80 @@
+{% extends "base.html" %}
+{% load static %}
+{% load custom_tags %}
+
+{% block title %} <h2>Folder: {{ folder }}</h2> {% endblock %} 
+
+<!-- Specific Page CSS goes HERE  -->
+{% block stylesheets %}{% endblock stylesheets %}
+
+
+{% block content %}
+
+<a href="/otoliths/dataview/{{ dataset }}/"><button class="btn-secondary item-link-10">Go back</button></a> 
+<a href="/otoliths/dataview/{{ dataset }}/{{ folder }}/?current_task=annotate"><button class="btn-secondary item-link-10">Refresh</button></a>
+<span class="item-empty"></span>
+<a {% if page_obj.has_previous %} href="?{% load_url_full page=page_obj.previous_page_number %}" {% endif %}><button class="btn-secondary item-link-5" {% if not page_obj.has_previous %} disabled {% endif %}> << </button></a>
+<span>Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}</span>
+<a {% if page_obj.has_next %} href="?{% load_url_full page=page_obj.next_page_number %}" {% endif %}><button class="btn-secondary item-link-5" {% if not page_obj.has_next %} disabled {% endif %}> >> </button></a>
+<br>
+
+<h3 class="item-left">Annotation Set:</h3>
+
+<a href="?mode=annuli_annotate&split_name={{ folder.0 }}&annotype=current" onclick="return !window.open(this.href, 'test', '')" target="_blank"><button class="item-right">View/Edit Annotation</button></a>
+
+
+<form action='.' method='GET'>
+    <h3 class="item-left">AI-Method:</h3>
+    <select name="aimethod" onchange="this.form.submit()" class="item-sub-left">
+        {% if current_ai_method == 'unet' %}
+        <option>Mask-RCNN</option>
+        <option selected>U-Net</option>
+        {% else %}
+        <option selected>Mask-RCNN</option>
+        <option>U-Net</option>
+        {% endif %}
+    </select>
+    <select name="weights" class="item-sub-right"> 
+        {% for model in all_models %}
+        <option>{{ model }}</option>
+        {% endfor %}
+    </select>
+    <!-- <input type="submit" name="aiprocess" value="TRAIN"> -->
+    <input type="text" name="current_task" value="{{ current_task }}" hidden>
+
+    <h3 class="item-left">Start Process:</h3>
+    <input type="submit" name="aiprocess" value="Annotate with AI"  class="btn-secondary item-right">
+
+    <input type="text" name="dataset" value="{{ dataset }}" hidden>
+    <input type="text" name="folder" value="{{ folder }}" hidden>
+    <input type="text" name="split_name" value="{{ folder }}" hidden>    
+
+</form>
+<br>
+
+
+{% if with_preds %}
+        <ul>
+        {% for image in with_preds %}
+            <li class="image-li">
+                <a href="{{ image }}"><img class="image-sq" src="{% static 'data/'|add:run_label|add:'/'|add:folder|add:'/'|add:image %}"></a>
+            </li>
+        {% endfor %}
+        </ul>
+{% else %}
+    {% for image in images %}
+        <li class="image-li">
+              <a href="{{ image }}"><img id="{{ image }}" class="image-sq" src="{% static 'data/'|add:dataset|add:'/'|add:folder|add:'/'|add:image %}"></a>
+        </li>
+    {% endfor %}
+{% endif %}
+
+
+{% endblock content %}
+
+
+
+<!-- Specific Page JS goes HERE  -->
+{% block javascripts %}
+
+{% endblock javascripts %}

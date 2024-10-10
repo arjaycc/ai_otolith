@@ -1,0 +1,82 @@
+{% extends "base.html" %}
+
+{% block title %} <h2>Section: Experiments</h2> {% endblock %} 
+
+<!-- Specific Page CSS goes HERE  -->
+{% block stylesheets %}{% endblock stylesheets %}
+
+
+{% block container %}
+
+
+<ul>
+
+    <!-- <h3 onclick="send_details()"> Visualize Existing Datasets </h3> -->
+    <h3> Checking Existing Datasets </h3>
+    <li>
+         <a href="/otoliths/dataview/datasets_north/images/">Visualize North Sea Dataset (All images)</a>
+    </li>
+
+    <li>
+         <a href="/otoliths/dataview/datasets_baltic/images/">Visualize Baltic Sea Dataset (All images)</a>
+    </li>
+
+
+    <li>
+         <a href="/otoliths/dataview/datasets_north/">Get Started with Northsea Dataset (Training-Testing Splits/Partitions)</a>
+    </li>
+
+    <li>
+         <a href="/otoliths/dataview/datasets_baltic/">Get Started with Baltic Dataset (Training-Testing Splits/Partitions)</a>
+    </li>
+
+
+
+    <h3> Uploading Own Datasets </h3>
+
+    <li>
+         <a href="/otoliths/upload/">How to upload new images</a>
+    </li>
+
+    <li>
+         <a href="/otoliths/upload/?upload_type=models">How to upload new models</a>
+    </li>
+
+
+    <li>
+         <a href="/otoliths/upload/?upload_type=annuli">How to upload new annuli annotations</a>
+    </li>
+
+    <li>
+         <a href="/otoliths/upload/?upload_type=outer">How to upload new outer annotations</a>
+    </li>
+
+    <h3> Visualize Own Datasets </h3>
+
+    <li>
+         <a href="/otoliths/dataview/datasets_{{ user.get_username }}/?folder_type=raw">View Raw Uploads From User (Uploaded/Raw)</a>
+    </li>
+    <li>
+         <a href="/otoliths/dataview/datasets_{{ user.get_username }}/images/">View User Dataset (All Images)</a>
+    </li>
+    <li>
+         <a href="/otoliths/dataview/datasets_{{ user.get_username }}/?folder_type=training">Get Started with User Dataset (Training-Testing Splits/Partitions)</a>
+    </li>
+
+
+
+
+
+
+</ul>
+
+
+{% endblock container %}
+
+
+
+
+<!-- Specific Page JS goes HERE  -->
+{% block javascripts %}
+
+{% endblock javascripts %}

@@ -1398,10 +1398,19 @@ function download_as_image() {
   // }
 
 
+  // var _via_project = { '_via_settings': _via_settings,
+  //                      '_via_img_metadata': _via_img_metadata,
+  //                      '_via_attributes': _via_attributes,
+  //                      '_via_data_format_version': '2.0.10',
+  //                      '_via_image_id_list': _via_image_id_list
+  //                    };
   var _via_project = { '_via_settings': _via_settings,
                        '_via_img_metadata': _via_img_metadata,
                        '_via_attributes': _via_attributes,
                        '_via_data_format_version': '2.0.10',
+                       'dataformat': '{{ dataformat }}',
+                       'dataset': '{{ dataset }}',
+                       'folder': '{{ folder }}',
                        '_via_image_id_list': _via_image_id_list
                      };
 
@@ -8177,10 +8186,19 @@ function project_save_confirmed(input) {
   // xhr.send(JSON.stringify(_via_img_metadata));
   //============================================================
 
+  // var _via_project = { '_via_settings': _via_settings,
+  //                      '_via_img_metadata': _via_img_metadata,
+  //                      '_via_attributes': _via_attributes,
+  //                      '_via_data_format_version': '2.0.10',
+  //                      '_via_image_id_list': _via_image_id_list
+  //                    };
   var _via_project = { '_via_settings': _via_settings,
                        '_via_img_metadata': _via_img_metadata,
                        '_via_attributes': _via_attributes,
                        '_via_data_format_version': '2.0.10',
+                       'dataformat': '{{ dataformat }}',
+                       'dataset': '{{ dataset }}',
+                       'folder': '{{ folder }}',
                        '_via_image_id_list': _via_image_id_list
                      };
 
@@ -8188,6 +8206,7 @@ function project_save_confirmed(input) {
 
   var xhttp = new XMLHttpRequest();
   xhttp.open("POST", "/interact/", true);
+  xhttp.setRequestHeader("X-CSRFToken", csrftoken); 
   xhttp.setRequestHeader('Content-Type', 'application/json');
   // xhttp.send(JSON.stringify(
   //     {test: 1}
