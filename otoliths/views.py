@@ -5,7 +5,7 @@ from django.views.decorators.csrf import csrf_exempt
 from django.contrib.auth.decorators import login_required
 from .forms import UploadForm, DataFilterForm, RunFormPhase1, RunFormPhase2, EnsembleFilterForm, UnetForm
 from .models import OtolithImage, Image
-
+from django.contrib.auth.models import Group
 from scipy.signal import find_peaks, detrend
 from scipy import signal
 from skimage.color import rgb2gray
@@ -43,11 +43,12 @@ import random
 import sklearn
 import matplotlib.pyplot as plt
 import os
-
+from multiprocessing import Process
 from .experiments_imgproc import *
 from .experiments_mrcnn import *
 from .experiments_unet import *
 from .views_utils import *
+
 
 @login_required
 def index(request):
@@ -82,7 +83,9 @@ def images(request):
         count += 1
         if count > 25:
             break
-    return render(request, 'otoliths/images.html', {'images': all_images, 'source_dir': source_dir} )
+    rungroup = Group.objects.get(name='running')
+    num_runners = len(rungroup.user_set.all())  
+    return render(request, 'otoliths/images.html', {'num_runners': num_runners, 'images': all_images, 'source_dir': source_dir} )
 
 
 @csrf_exempt
@@ -1824,7 +1827,15 @@ def dataview_images(request, dataset, folder):
     if request.method == 'POST':
         print(request.POST)
         if 'alpha' in request.POST:
-            create_outer_contours(dataset, folder)
+            
+            if check_user_membership(request.user, 'running'):
+                pproc = Process(target=create_outer_contours, daemon=True, args=(dataset, folder,))
+                #create_outer_contours(dataset, folder)
+                print(pproc)
+                pproc.start()
+            else:
+                print("No token for running")
+            
             with_preds = 'watershed'
             user_uploaded = False
             if dataset != 'datasets_north' and dataset != 'datasets_baltic' and folder.startswith('raw'):
@@ -1909,13 +1920,27 @@ def dataview_images(request, dataset, folder):
                     settings['selected'] = [47]
                 else:
                     settings['selected'] = [37]
-                run_unet(settings)
+                    
+                if check_user_membership(request.user, 'running'):
+                    pproc = Process(target=run_unet, daemon=True, args=(settings,))
+                    print(pproc)
+                    pproc.start()
+                else:
+                    print("No token for running")                    
+
+#                 run_unet(settings)
             else:
                 if dataset == 'datasets_north':
                     settings['selected'] = [6]
                 else:
                     settings['selected'] = [2]
-                run_mrcnn(settings)
+                    
+                if check_user_membership(request.user, 'running'):
+                    pproc = Process(target=run_mrcnn, daemon=True, args=(settings,))
+                    pproc.start()
+                else:
+                    print("No token for running")  
+#                 run_mrcnn(settings)
                 print("=======================================")
 
             all_h5 = glob.glob('datasets_*/{}*/*.h5'.format(current_ai_method) )
@@ -1937,6 +1962,10 @@ def dataview_images(request, dataset, folder):
             if 'aimethod' in request.GET and request.GET['aimethod'] == 'U-Net':
                 current_ai_method = 'unet'
 
+            batchmode = 'all'
+            if 'aiprocessrow' in request.GET:
+                batchmode = 'row'
+
             print(request.GET)
             weights = request.GET['weights']
             strs = weights.split(" // ")
@@ -1945,8 +1974,6 @@ def dataview_images(request, dataset, folder):
             model_path = glob.glob("{}/{}/*.h5".format(source_dataset, source_folder))[0]
             print(model_path)
 
-
-            # raise ValueError
             if dataset == 'datasets_north':
                 sample_model_unet = 'unet_north_sample.h5'
                 sample_model_mrcnn = 'mrcnn_north_sample.h5'
@@ -1961,24 +1988,22 @@ def dataview_images(request, dataset, folder):
                 pass
 
             pred_lines = []
-            count = 0
+            filecount = 0
             with_preds = []
+            
+            
+            batch_og_images = []
+            batch_sq_images = []
+            batch_windows = []
+            batch_image_names = []
+
+            manual_readings = []
+            
             for img_file in img_files:
                 
-
                 og_img = skimage.io.imread(img_file)
                 strs = img_file.replace("\\", "/").split("/")
                 image_name = strs[-1]
-
-                # if os.path.isfile('autolith/static/data/{}/{}/{}'.format(source_folder, folder, image_name)):
-                #     print("pred exists")
-                #     with_preds.append(image_name)
-                #     continue
-
-                count += 1
-                if 'aiprocessrow' in request.GET and count > 6:
-                    break
-
 
                 try:
                     manual_age = int(age_data_map[image_name])
@@ -1991,22 +2016,35 @@ def dataview_images(request, dataset, folder):
                 max_dim=512,
                 #padding=True,
                 )
-                try:
-                    print("predicting..")
-                    if current_ai_method == 'unet':
-                        ai_reading = predict_unet(og_img, sq_img, window, dataset, folder, image_name, model_name=sample_model_unet, model_path=model_path, run_label=source_folder)
-                    else:
-                        ai_reading = predict_mrcnn(og_img, sq_img, window, dataset, folder, image_name, model_name=sample_model_mrcnn, model_path=model_path, run_label=source_folder)
-                    pred_lines.append("{},{},{}".format(image_name, ai_reading, manual_age))
-                    with_preds.append(image_name)
-                except:
-                    raise
-                    pass
+                
+                batch_og_images.append(og_img)
+                batch_sq_images.append(sq_img)
+                batch_windows.append(window)
+                batch_image_names.append(image_name)
 
-            output_file = "{}/{}/{}.txt".format(dataset, folder, source_folder)
-            with open(output_file, 'w') as fout:
-                fout.write("\n".join(pred_lines))
+                manual_readings.append(manual_age)
 
+                #ai_reading = 0
+                #pred_lines.append("{},{},{}".format(image_name, ai_reading, manual_age))
+                with_preds.append(image_name)                
+
+
+            if current_ai_method == 'unet':
+                ai_reading = 0
+                if check_user_membership(request.user, 'running'):
+                    pproc = Process(target=predict_unet_batchfiles, daemon=True, args=(img_files, manual_readings, dataset, folder), kwargs=dict(model_name=sample_model_unet, model_path=model_path, run_label=source_folder, batchmodel=None))
+                    print(pproc)
+                    pproc.start()
+                else:
+                    print("No token for running")
+            else:
+                ai_reading = 0
+                if check_user_membership(request.user, 'running'):
+                    pproc = Process(target=predict_mrcnn_batchfiles, daemon=True, args=(img_files, manual_readings, dataset, folder), kwargs=dict(model_name=sample_model_unet, model_path=model_path, run_label=source_folder, batchmodel=None))
+                    print(pproc)
+                    pproc.start()
+                else:
+                    print("No token for running")
             
             try:
                 current_task = request.GET['current_task']
@@ -3125,3 +3163,7 @@ def ensemble_train_and_predict_north(domain, base_rep):
 
     return rf_correct, lin_correct, mean_correct
 
+
+
+def check_user_membership(user, groupname):
+    return user.groups.filter(name=groupname).exists()

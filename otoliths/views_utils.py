@@ -13,7 +13,57 @@ import random
 import warnings
 import scipy
 
-def predict_mrcnn(raw_image, sq_img, window, dataset, folder, image_name, mode="annulus", model_name='mrcnn_baltic_sample.h5', model_path='', run_label='mrcnn_annuli'):
+
+def predict_mrcnn_batchfiles(img_files, manual_readings, dataset, folder, model_name='mrcnn_baltic_sample.h5', model_path='', run_label='mrcnn_annuli', batchmodel=None):
+    filecount = 0
+    pred_lines = []
+    for img_idx, img_file in enumerate(img_files):
+        og_img = skimage.io.imread(img_file)
+        strs = img_file.replace("\\", "/").split("/")
+        image_name = strs[-1]
+
+        manual_age = manual_readings[img_idx]
+
+        sq_img, window, scale, padding, _ = resize_image(
+        og_img, 
+        min_dim=512,
+        max_dim=512,
+        #padding=True,
+        )
+        ai_reading = predict_mrcnn(og_img, sq_img, window, dataset, folder, image_name, model_name=model_name, model_path=model_path, run_label=run_label, batchmodel=None)
+        filecount+=1
+        pred_lines.append("{},{},{}".format(image_name, ai_reading, manual_age))
+
+    output_file = "{}/{}/{}.txt".format(dataset, folder, run_label)
+    with open(output_file, 'w') as fout:
+        fout.write("\n".join(pred_lines))
+
+
+def predict_unet_batchfiles(img_files, manual_readings, dataset, folder, model_name='unet_baltic_sample.h5', model_path='', run_label='unet_annuli', batchmodel=None):
+    filecount = 0
+    pred_lines = []
+    for img_idx, img_file in enumerate(img_files):
+        og_img = skimage.io.imread(img_file)
+        strs = img_file.replace("\\", "/").split("/")
+        image_name = strs[-1]
+
+        manual_age = manual_readings[img_idx]
+        sq_img, window, scale, padding, _ = resize_image(
+        og_img, 
+        min_dim=512,
+        max_dim=512,
+        #padding=True,
+        )
+        ai_reading = predict_unet(og_img, sq_img, window, dataset, folder, image_name, model_name=model_name, model_path=model_path, run_label=run_label, batchmodel=batchmodel)
+        pred_lines.append("{},{},{}".format(image_name, ai_reading, manual_age))
+        filecount+=1
+
+    output_file = "{}/{}/{}.txt".format(dataset, folder, run_label)
+    with open(output_file, 'w') as fout:
+        fout.write("\n".join(pred_lines))
+
+
+def predict_mrcnn(raw_image, sq_img, window, dataset, folder, image_name, mode="annulus", model_name='mrcnn_baltic_sample.h5', model_path='', run_label='mrcnn_annuli', batchmodel=None):
     from mrcnn import model as modellib
     from mrcnn.mrcnn_aux import InferenceConfig
     if mode == 'annulus':
@@ -48,7 +98,8 @@ def predict_mrcnn(raw_image, sq_img, window, dataset, folder, image_name, mode="
         cx = 255
         cy = 255
     ai_reading = count_detected_masks(results, cx, cy, image_copy=image_copy, class_names=['bg','annulus'], fname=image_name, folder=folder, run_label=run_label)
-
+    #if batchmode == 'row':
+     #   return ai_reading
 
     #==================================================
     # if dataset == 'datasets_user':
@@ -142,7 +193,7 @@ def predict_mrcnn(raw_image, sq_img, window, dataset, folder, image_name, mode="
     return ai_reading
 
 
-def predict_unet(raw_image, sq_img, window, dataset, folder, image_name, model_name='unet_baltic_sample.h5', model_path='', run_label='unet_annuli'):
+def predict_unet(raw_image, sq_img, window, dataset, folder, image_name, model_name='unet_baltic_sample.h5', model_path='', run_label='unet_annuli', batchmodel=None):
     import skimage.io
     import time
     import tensorflow as tf
@@ -154,6 +205,8 @@ def predict_unet(raw_image, sq_img, window, dataset, folder, image_name, model_n
     except:
         model = load_model('{}/models/{}'.format(dataset, model_name), compile=False)
     model._make_predict_function()
+
+    #model = batchmodel
 
     input_shape = model.layers[0].input_shape[0]
     CHANNELS = input_shape[-1]
@@ -185,6 +238,13 @@ def predict_unet(raw_image, sq_img, window, dataset, folder, image_name, model_n
 
     item =  preds_test_t[0].squeeze()
     ai_reading, ai_contours, ai_labels = count_prediction_output(dataset, item, cx, cy)
+
+    #if batchmode == 'row':
+    #    return ai_reading
+
+
+
+    
     print([cx, cy])
     print("AI READING:: {} :: {}", image_name, ai_reading)
     print("loading json")
@@ -901,7 +961,9 @@ def print_instances(image, boxes, masks, class_ids, class_names,
     return masked_image #plt.gcf()
 
 def resize_image(image, min_dim=None, max_dim=None, min_scale=None, mode="square"):
-    """Resizes an image keeping the aspect ratio unchanged.
+    """
+    >> Copyright (c) 2017 Matterport, Inc. <<
+    Resizes an image keeping the aspect ratio unchanged.
 
     min_dim: if provided, resizes the image such that it's smaller
         dimension == min_dim
@@ -1009,7 +1071,9 @@ def resize_image(image, min_dim=None, max_dim=None, min_scale=None, mode="square
 
 
 def resize_mask(mask, scale, padding, crop=None):
-    """Resizes a mask using the given scale and padding.
+    """
+    >> Copyright (c) 2017 Matterport, Inc. <<
+    Resizes a mask using the given scale and padding.
     Typically, you get the scale and padding from resize_image() to
     ensure both, the image and the mask, are resized consistently.
 
@@ -1142,3 +1206,52 @@ def count_prediction_output(domain, mask_item, cx, cy):
             pass
 
     return ai_reading, contours, all_labels
+
+
+def modify_image_brighten(img_new, mask_new, dataset):
+    image_res = img_as_ubyte(img_new.copy())
+    if dataset == 'datasets_north':
+        img_new = cv2.convertScaleAbs(img_as_ubyte(image_res), alpha=1.5, beta=10)
+    else:
+        img_new = cv2.convertScaleAbs(img_as_ubyte(image_res), alpha=2, beta=20)
+    return img_new
+
+
+def modify_image_bgremove(img_new, mask_new, dataset):
+    nwh_thresh = np.zeros([mask_new.shape[0], mask_new.shape[1],1], dtype=np.uint8)
+    nwh_thresh = mask_new[:,:,0]
+    nwh_contours, h = cv2.findContours(nwh_thresh.copy(), cv2.RETR_LIST, cv2.CHAIN_APPROX_NONE)
+    nwh_cts = max(nwh_contours, key=cv2.contourArea)
+
+    test_mask = np.ones(mask_new.shape[:2], dtype="uint8") * 255
+    cv2.drawContours(test_mask, [nwh_cts], -1, 0, -1)
+
+    mapFg = cv2.erode(test_mask, np.ones( (5,5), np.uint8), iterations=10)
+    test_img_mask = cv2.bitwise_not(mapFg)
+
+    imagec = img_as_ubyte(img_new.copy())
+    image_res = cv2.bitwise_and(imagec, imagec, mask=test_img_mask)
+
+    return image_res
+
+
+def modify_image_both(img_new, mask_new, dataset):
+    nwh_thresh = np.zeros([mask_new.shape[0], mask_new.shape[1],1], dtype=np.uint8)
+    nwh_thresh = mask_new[:,:,0]
+    nwh_contours, h = cv2.findContours(nwh_thresh.copy(), cv2.RETR_LIST, cv2.CHAIN_APPROX_NONE)
+    nwh_cts = max(nwh_contours, key=cv2.contourArea)
+
+    test_mask = np.ones(mask_new.shape[:2], dtype="uint8") * 255
+    cv2.drawContours(test_mask, [nwh_cts], -1, 0, -1)
+
+    mapFg = cv2.erode(test_mask, np.ones( (5,5), np.uint8), iterations=10)
+    test_img_mask = cv2.bitwise_not(mapFg)
+
+    imagec = img_as_ubyte(img_new.copy())
+    image_res = cv2.bitwise_and(imagec, imagec, mask=test_img_mask)
+
+    if dataset == 'datasets_north':
+        img_new = cv2.convertScaleAbs(img_as_ubyte(image_res), alpha=1.5, beta=10)
+    else:
+        img_new = cv2.convertScaleAbs(img_as_ubyte(image_res), alpha=2, beta=20)
+    return img_new
